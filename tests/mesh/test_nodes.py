@@ -51,16 +51,16 @@ class TestNodes(unittest.TestCase):
 
     def tests_if_value_error_is_raised_when_position_dtype_is_initialzied_to_torch_int64(self):
         with self.assertRaises(ValueError):
-            p = torch.arange(12).reshape(4,3).to(dtype=torch.int64)
+            p = torch.arange(12).reshape(4, 3).to(dtype=torch.int64)
             nodes = Nodes(position=p)
 
     def tests_if_value_error_is_raised_when_position_dtype_is_set_to_torch_int64(self):
         with self.assertRaises(ValueError):
-            p = torch.arange(12).reshape(4,3).to(dtype=torch.float32)
+            p = torch.arange(12).reshape(4, 3).to(dtype=torch.float32)
             nodes = Nodes(position=p)
-            nodes.position = torch.arange(12).reshape(4,3).to(dtype=torch.int64)
+            nodes.position = torch.arange(12).reshape(4, 3).to(dtype=torch.int64)
 
-    def tests_if_velocity_is_none_when_initialized(self):
+    def tests_if_velocity_is_none_when_uninitialized(self):
         p = torch.arange(12).reshape(4, 3).to(dtype=torch.float32)
         nodes = Nodes(position=p)
         self.assertIsNone(nodes.velocity)
@@ -71,10 +71,19 @@ class TestNodes(unittest.TestCase):
             nodes = Nodes(position=p)
             nodes.velocity = torch.arange(24).reshape(8, 3).to(dtype=torch.float32)
 
+    def tests_if_force_is_none_when_uninitialized(self):
+        p = torch.arange(12).reshape(4, 3).to(dtype=torch.float32)
+        nodes = Nodes(position=p)
+        self.assertIsNone(nodes.force)
 
+    def tests_if_value_error_is_raised_when_force_is_set_to_tensor_of_a_different_shape_to_position(self):
+        with self.assertRaises(ValueError):
+            p = torch.arange(12).reshape(4, 3).to(dtype=torch.float32)
+            nodes = Nodes(position=p)
+            nodes.force = torch.arange(24).reshape(8, 3).to(dtype=torch.float32)
 
     def tests_the_length_of_nodes(self):
-        p = torch.arange(21).reshape(7,3).to(dtype=torch.float32)
+        p = torch.arange(21).reshape(7, 3).to(dtype=torch.float32)
         nodes = Nodes(position=p)
         self.assertEqual(len(nodes), 7)
 

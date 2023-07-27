@@ -16,13 +16,8 @@ class Nodes:
         self._validate_common_traits_of_attributes(name=attribute.name, value=value)
 
     @velocity.validator
-    def _validate_velocity(self, attribute, value):
-        if value is not None:
-            self._validate_common_traits_of_attributes(name=attribute.name, value=value)
-            self._validate_equal_shape_with_position(name=attribute.name, value=value)
-
     @force.validator
-    def _validate_force(self, attribute, value):
+    def _validate_velocity(self, attribute, value):
         if value is not None:
             self._validate_common_traits_of_attributes(name=attribute.name, value=value)
             self._validate_equal_shape_with_position(name=attribute.name, value=value)
