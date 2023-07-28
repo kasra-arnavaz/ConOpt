@@ -6,6 +6,7 @@ from mesh.mesh import Mesh
 from mesh.nodes import Nodes
 from mesh.elements import Elements
 
+
 class MeshFactory(ABC):
     def __init__(self, file: PathLike):
         self._file = file
@@ -15,50 +16,43 @@ class MeshFactory(ABC):
         pass
 
 
-class MeshFactoryFromObj(MeshFactory):
+class _MeshFactoryTriangles(MeshFactory):
     def create(self):
         nodes = Nodes(position=self._get_position())
         elements = Elements(triangles=self._get_triangles())
         return Mesh(nodes, elements)
 
     def _get_position(self):
-        return torch.from_numpy(self._get_obj_mesh().points).to(dtype=torch.float32)
+        return torch.from_numpy(self._get_mesh_data().points).to(dtype=torch.float32)
 
     def _get_triangles(self):
-        return torch.from_numpy(self._get_obj_mesh().cells_dict["triangle"]).to(dtype=torch.int64)
-    
-    def _get_obj_mesh(self):
-        return meshio.read(self._file)
-    
-class MeshFactoryFromStl(MeshFactory):
-    def create(self):
-        nodes = Nodes(position=self._get_position())
-        elements = Elements(triangles=self._get_triangles())
-        return Mesh(nodes, elements)
+        return torch.from_numpy(self._get_mesh_data().cells_dict["triangle"]).to(dtype=torch.int64)
 
-    def _get_position(self):
-        return torch.from_numpy(self._get_stl_mesh().points).to(dtype=torch.float32)
-
-    def _get_triangles(self):
-        return torch.from_numpy(self._get_stl_mesh().cells_dict["triangle"]).to(dtype=torch.int64)
-    
-    def _get_stl_mesh(self):
+    def _get_mesh_data(self):
         return meshio.read(self._file)
-    
+
+
+class MeshFactoryFromObj(_MeshFactoryTriangles):
+    pass
+
+
+class MeshFactoryFromStl(_MeshFactoryTriangles):
+    pass
+
 
 class MeshFactoryFromMsh(MeshFactory):
     def create(self):
         nodes = Nodes(position=self._get_position())
         elements = Elements(tetrahedra=self._get_tetrahedra())
         return Mesh(nodes, elements)
-    
+
     def _get_position(self):
-        return torch.from_numpy(self._get_msh_mesh().points).to(dtype=torch.float32)
+        return torch.from_numpy(self._get_mesh_data().points).to(dtype=torch.float32)
 
     def _get_tetrahedra(self):
-        return torch.from_numpy(self._get_msh_mesh().cells_dict["tetra"]).to(dtype=torch.int64)
+        return torch.from_numpy(self._get_mesh_data().cells_dict["tetra"]).to(dtype=torch.int64)
 
-    def _get_msh_mesh(self):
+    def _get_mesh_data(self):
         return meshio.read(self._file)
 
 
