@@ -1,8 +1,7 @@
+import torch
+import meshio
 from abc import ABC, abstractmethod
 from os import PathLike
-import torch
-from pytorch3d.io import obj_io
-import meshio
 from mesh.mesh import Mesh
 from mesh.nodes import Nodes
 from mesh.elements import Elements
@@ -23,10 +22,13 @@ class MeshFactoryFromObj(MeshFactory):
         return Mesh(nodes, elements)
 
     def _get_position(self):
-        return obj_io.load_obj(self._file)[0].to(dtype=torch.float32)
+        return torch.from_numpy(self._get_obj_mesh().points).to(dtype=torch.float32)
 
     def _get_triangles(self):
-        return obj_io.load_obj(self._file)[1].verts_idx.to(dtype=torch.int64)
+        return torch.from_numpy(self._get_obj_mesh().cells_dict["triangle"]).to(dtype=torch.int64)
+    
+    def _get_obj_mesh(self):
+        return meshio.read(self._file)
     
 class MeshFactoryFromStl(MeshFactory):
     def create(self):
@@ -41,6 +43,22 @@ class MeshFactoryFromStl(MeshFactory):
         return torch.from_numpy(self._get_stl_mesh().cells_dict["triangle"]).to(dtype=torch.int64)
     
     def _get_stl_mesh(self):
+        return meshio.read(self._file)
+    
+
+class MeshFactoryFromMsh(MeshFactory):
+    def create(self):
+        nodes = Nodes(position=self._get_position())
+        elements = Elements(tetrahedra=self._get_tetrahedra())
+        return Mesh(nodes, elements)
+    
+    def _get_position(self):
+        return torch.from_numpy(self._get_msh_mesh().points).to(dtype=torch.float32)
+
+    def _get_tetrahedra(self):
+        return torch.from_numpy(self._get_msh_mesh().cells_dict["tetra"]).to(dtype=torch.int64)
+
+    def _get_msh_mesh(self):
         return meshio.read(self._file)
 
 
