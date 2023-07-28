@@ -1,7 +1,10 @@
 import torch
 import meshio
+import os
+import shutil
 from abc import ABC, abstractmethod
 from os import PathLike
+from pathlib import Path
 from mesh.mesh import Mesh
 from mesh.nodes import Nodes
 from mesh.elements import Elements
@@ -54,6 +57,50 @@ class MeshFactoryFromMsh(MeshFactory):
 
     def _get_mesh_data(self):
         return meshio.read(self._file)
+
+
+class MeshFactoryFromScad(MeshFactory):
+    def __init__(self, file: PathLike, parameters_file: PathLike, ideal_edge_length: float = 0.02):
+        self.PATH = Path(".tmp")
+        self.PATH.mkdir(exist_ok=True)
+        super().__init__(file)
+        self._parameter_file = parameters_file
+        self._ideal_edge_length = ideal_edge_length
+
+    def create(self):
+        self._create_files()
+        obj_factory = MeshFactoryFromObj(self._get_obj_file())
+        msh_factory = MeshFactoryFromMsh(self._get_msh_file())
+        position = msh_factory._get_position()
+        tetrahedra = msh_factory._get_tetrahedra()
+        triangles = obj_factory._get_triangles()
+        nodes = Nodes(position=position)
+        elements = Elements(triangles=triangles, tetrahedra=tetrahedra)
+        return Mesh(nodes, elements)
+
+    def _create_files(self):
+        self._convert_scad_to_stl()
+        self._convert_stl_to_msh_and_obj()
+
+    def _convert_scad_to_stl(self):
+        scad = self._file
+        stl = self._get_stl_file()
+        os.system(f"openscad -q {scad} -o {stl} -p {self._parameter_file} -P firstSet")
+
+    def _convert_stl_to_msh_and_obj(self):
+        iel = self._ideal_edge_length
+        stl = self._get_stl_file()
+        msh = self._get_msh_file()
+        os.system(f"fTetWild/build/FloatTetwild_bin -i {stl} -o {msh} -l {iel}")
+
+    def _get_msh_file(self):
+        return self.PATH / "mesh.msh"
+
+    def _get_obj_file(self):
+        return self.PATH / "mesh.msh__sf.obj"
+
+    def _get_stl_file(self):
+        return self.PATH / "mesh.stl"
 
 
 class MeshFactoryFromTet(MeshFactory):
