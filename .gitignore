@@ -2,6 +2,7 @@
 *.usd
 alaki*.py
 .vscode
+.tmp/
 fTetWild/
 # Byte-compiled / optimized / DLL files
 __pycache__/
