@@ -9,4 +9,4 @@ def main(test_directory):
 
 
 if __name__ == "__main__":
-    main("tests")
+    main("tests/mesh")
