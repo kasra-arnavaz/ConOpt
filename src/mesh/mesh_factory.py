@@ -8,6 +8,7 @@ from pathlib import Path
 from mesh.mesh import Mesh
 from mesh.nodes import Nodes
 from mesh.elements import Elements
+from mesh.scad import Scad
 
 
 class MeshFactory(ABC):
@@ -60,11 +61,10 @@ class MeshFactoryFromMsh(MeshFactory):
 
 
 class MeshFactoryFromScad(MeshFactory):
-    def __init__(self, file: PathLike, parameters_file: PathLike, ideal_edge_length: float = 0.02):
+    def __init__(self, scad: Scad, ideal_edge_length: float = 0.02):
         self.PATH = Path(".tmp")
         self.PATH.mkdir(exist_ok=True)
-        super().__init__(file)
-        self._parameter_file = parameters_file
+        self._scad = scad
         self._ideal_edge_length = ideal_edge_length
 
     def create(self):
@@ -83,9 +83,8 @@ class MeshFactoryFromScad(MeshFactory):
         self._convert_stl_to_msh_and_obj()
 
     def _convert_scad_to_stl(self):
-        scad = self._file
         stl = self._get_stl_file()
-        os.system(f"openscad -q {scad} -o {stl} -p {self._parameter_file} -P firstSet")
+        os.system(f"openscad -q {self._scad.file} -o {stl} -p {self._scad.parameters} -P firstSet")
 
     def _convert_stl_to_msh_and_obj(self):
         iel = self._ideal_edge_length
