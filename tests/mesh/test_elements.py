@@ -78,9 +78,9 @@ class TestElements(unittest.TestCase):
             elements.triangles = torch.arange(12).reshape(4, 3).to(dtype=torch.float32)
 
     def tests_if_value_error_is_raised_when_tetrahedra_dtype_is_initialzied_to_torch_float32(self):
+        tet = torch.arange(12).reshape(3, 4).to(dtype=torch.float32)
         with self.assertRaises(ValueError):
-            tet = torch.arange(12).reshape(3, 4).to(dtype=torch.float32)
-            elements = Elements(tetrahedra=tet)
+            Elements(tetrahedra=tet)
 
     def tests_if_value_error_is_raised_when_position_dtype_is_set_to_torch_float32(self):
         tet = torch.arange(12).reshape(3, 4).to(dtype=torch.int64)
