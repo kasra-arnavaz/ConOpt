@@ -28,8 +28,8 @@ class TestNodes(unittest.TestCase):
             nodes.position = torch.arange(12).to(dtype=torch.float32)
 
     def tests_if_value_error_is_raised_when_position_is_initialized_to_3d_tensor(self):
+        p = torch.arange(12).reshape(2, 2, 3).to(dtype=torch.float32)
         with self.assertRaises(ValueError):
-            p = torch.arange(12).reshape(2, 2, 3).to(dtype=torch.float32)
             Nodes(position=p)
 
     def tests_if_value_error_is_raised_when_position_is_set_to_3d_tensor(self):
@@ -39,8 +39,8 @@ class TestNodes(unittest.TestCase):
             nodes.position = p.reshape(2, 2, 3).to(dtype=torch.float32)
 
     def tests_if_value_error_is_raised_when_positions_last_dimension_is_initialized_to_2(self):
+        p = torch.arange(12).reshape(6, 2).to(dtype=torch.float32)
         with self.assertRaises(ValueError):
-            p = torch.arange(12).reshape(6, 2).to(dtype=torch.float32)
             Nodes(position=p)
 
     def tests_if_value_error_is_raised_when_positions_last_dimension_is_set_to_2(self):
@@ -50,9 +50,9 @@ class TestNodes(unittest.TestCase):
             nodes.position = torch.arange(12).reshape(6, 2).to(dtype=torch.float32)
 
     def tests_if_value_error_is_raised_when_position_dtype_is_initialzied_to_torch_int64(self):
+        p = torch.arange(12).reshape(4, 3).to(dtype=torch.int64)
         with self.assertRaises(ValueError):
-            p = torch.arange(12).reshape(4, 3).to(dtype=torch.int64)
-            nodes = Nodes(position=p)
+            Nodes(position=p)
 
     def tests_if_value_error_is_raised_when_position_dtype_is_set_to_torch_int64(self):
         p = torch.arange(12).reshape(4, 3).to(dtype=torch.float32)
