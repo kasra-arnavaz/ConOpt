@@ -1,22 +1,27 @@
 import torch
-from typing import List
-from attrs import define, field, validators
+from mesh.holes import Holes
+from attrs import define, field
 
 
 @define
 class Cable:
+    holes: Holes = field()
+    pull_ratio: torch.Tensor = field(on_setattr=lambda self, attribute, value: torch.clip(value, min=0))
     stiffness: float = field(default=100.0)
     damping: float = field(default=0.01)
-    holes_position: List[torch.Tensor] = field(default=None)
-
-    @holes_position.validator
+    
+    @pull_ratio.default
+    def _default_pull_ratio(self):
+        return torch.tensor(0., dtype=torch.float32)
+    
+    @pull_ratio.validator
     def _check_type_and_shape(self, attribute, value):
-        if value is not None:
-            if not isinstance(value, list):
-                raise TypeError(f"Expected <{attribute.name}> to be of type list, got {type(value)}.")
-            if not all(isinstance(item, torch.Tensor) for item in value):
-                raise TypeError(f"Expected list of torch tensors for <{attribute.name}>.")
-            if any(len(tensor.shape) != 2 for tensor in value):
-                raise ValueError(f"Expected <{attribute.name}> tensors to be 2 dimensional.")
-            if any(tensor.shape[-1] != 3 for tensor in value):
-                raise ValueError(f"Expected the last dimension of <{attribute.name}> tensors to be 3.")
+        name = attribute.name
+        if not isinstance(value, torch.Tensor):
+            raise TypeError(f"Expected <{name}> to be of type torch.Tensor, got {type(value)}.")
+        if len(value.shape) != 0:
+            raise ValueError(f"Expected <{name}> to be a 0 dimensional tensor, got {len(value.shape)} dimensional.")
+        if value.dtype != torch.float32:
+            raise ValueError(f"Expected dtype of <{name}> to be torch.float32, got {value.dtype}.")
+        if value < 0:
+            raise ValueError(f"Expected the value of <{name}> to be greater than or equal to 0, got {value}")

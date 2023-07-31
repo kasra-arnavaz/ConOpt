@@ -2,43 +2,42 @@ import unittest
 import torch
 import sys
 import numpy as np
-from pathlib import Path
 
 sys.path.append("src")
 from mesh.cable import Cable
-from mesh.scad import Scad
-from mesh.holes_position import HolesPositionWhenUnloaded
-
+from mesh.holes import Holes
 
 class TestCable(unittest.TestCase):
-    def tests_if_holes_position_is_none_by_default(self):
-        self.assertIsNone(Cable().holes_position)
 
-    def tests_if_value_error_is_raised_when_holes_position_is_a_tuple_of_torch_tensors(self):
-        cable = Cable()
-        tensor = torch.arange(15).reshape(5, 3).to(dtype=torch.float32)
-        holes_position = (tensor, tensor, tensor)
+    def setUp(self) -> None:
+        p = torch.arange(12).reshape(-1,3).to(dtype=torch.float32)
+        self.holes = Holes(position=p)
+
+    def tests_if_pull_ratio_is_a_zero_tensor_by_default(self):
+        cable = Cable(holes=self.holes)
+        zero_tensor = torch.tensor(0., dtype=torch.float32)
+        self.assertTrue(torch.equal(cable.pull_ratio, zero_tensor))
+
+    def tests_if_a_type_error_is_raised_if_pull_ratio_is_numpy_array(self):
+        pull_ratio = np.array(0.)
         with self.assertRaises(TypeError):
-            cable.holes_position = holes_position
+            Cable(holes=self.holes, pull_ratio=pull_ratio)
 
-    def tests_if_value_error_is_raised_when_holes_position_is_a_list_of_numpy_arrays(self):
-        cable = Cable()
-        array = np.arange(15).reshape(5, 3).astype(np.float32)
-        holes_position = (array, array, array)
-        with self.assertRaises(TypeError):
-            cable.holes_position = holes_position
+    def tests_if_a_value_error_is_raised_if_pull_ratio_1D_torch_tensor(self):
+        pull_ratio = torch.tensor([0.])
+        with self.assertRaises(ValueError):
+            Cable(holes=self.holes, pull_ratio=pull_ratio)
 
-    def tests_if_holes_position_can_be_set_in_unloaded_state(self):
-        cable = Cable()
-        file = Path("tests/data/caterpillar.scad")
-        parameters = Path("tests/data/caterpillar_scad_params.json")
-        scad = Scad(file, parameters)
-        holes_position = HolesPositionWhenUnloaded(scad).get()
-        try:
-            cable.holes_position = holes_position
-        except:
-            self.fail("Failed to assign holes_positions to cable object.")
+    def tests_if_a_value_error_is_raised_if_pull_ratios_dtype_is_int64(self):
+        pull_ratio = torch.tensor(0, dtype=torch.int64)
+        with self.assertRaises(ValueError):
+            Cable(holes=self.holes, pull_ratio=pull_ratio)
 
+    def tests_if_pull_ratio_is_clipped_to_zero_if_negative(self):
+        cable = Cable(holes=self.holes)
+        cable.pull_ratio = torch.tensor(-1., dtype=torch.float32)
+        expected = torch.tensor(0., dtype=torch.float32)
+        self.assertTrue(torch.equal(cable.pull_ratio, expected))
 
 if __name__ == "__main__":
     unittest.main()
