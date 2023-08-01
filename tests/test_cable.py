@@ -4,8 +4,8 @@ import sys
 import numpy as np
 
 sys.path.append("src")
-from mesh.cable import Cable
-from mesh.holes import Holes
+from cable.cable import Cable
+from cable.holes import Holes
 
 class TestCable(unittest.TestCase):
 

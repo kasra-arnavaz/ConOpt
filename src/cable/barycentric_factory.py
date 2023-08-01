@@ -1,9 +1,9 @@
 import warp as wp
 import torch
 from mesh.mesh import Mesh
-from mesh.holes import Holes
-from mesh.geometry import point_is_in_tetrahedron, barycentric_coordinates
-from mesh.barycentric import Barycentric
+from cable.holes import Holes
+from utils.geometry import point_is_in_tetrahedron, barycentric_coordinates
+from cable.barycentric import Barycentric
 
 
 class BarycentricFactory:

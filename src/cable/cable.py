@@ -1,5 +1,5 @@
 import torch
-from mesh.holes import Holes
+from cable.holes import Holes
 from attrs import define, field
 
 

@@ -1,7 +1,7 @@
 import torch
 from typing import List
 from abc import ABC, abstractmethod
-from mesh.holes import Holes
+from cable.holes import Holes
 
 
 class HolesFactory(ABC):

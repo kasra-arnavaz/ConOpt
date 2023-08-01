@@ -1,4 +1,3 @@
-import torch
 from attrs import define, field
 from os import PathLike
 

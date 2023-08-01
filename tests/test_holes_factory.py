@@ -4,9 +4,9 @@ import torch
 from pathlib import Path
 
 sys.path.append("src")
-from mesh.holes import Holes
-from mesh.holes_factory import HolesFactoryFromListOfPositions
-from mesh.holes_position import HolesPositionWhenUnloaded
+from cable.holes import Holes
+from cable.holes_factory import HolesFactoryFromListOfPositions
+from cable.holes_position import HolesPositionWhenUnloaded
 from mesh.scad import Scad
 
 

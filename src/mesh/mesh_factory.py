@@ -1,7 +1,6 @@
 import torch
 import meshio
 import os
-import shutil
 from abc import ABC, abstractmethod
 from os import PathLike
 from pathlib import Path

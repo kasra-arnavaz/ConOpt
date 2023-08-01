@@ -3,10 +3,10 @@ import sys
 from pathlib import Path
 sys.path.append("src")
 
-from mesh.barycentric_factory import BarycentricFactory
+from cable.barycentric_factory import BarycentricFactory
 from mesh.mesh_factory import MeshFactoryFromScad
-from mesh.holes_factory import HolesFactoryFromListOfPositions
-from mesh.holes_position import HolesPositionWhenUnloaded
+from cable.holes_factory import HolesFactoryFromListOfPositions
+from cable.holes_position import HolesPositionWhenUnloaded
 from mesh.scad import Scad
 
 class TestBarycentricFactory(unittest.TestCase):

@@ -5,7 +5,7 @@ from pathlib import Path
 
 sys.path.append("src")
 
-from mesh.holes_position import HolesPositionWhenUnloaded
+from cable.holes_position import HolesPositionWhenUnloaded
 from mesh.scad import Scad
 
 

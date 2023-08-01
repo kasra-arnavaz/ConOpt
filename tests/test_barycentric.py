@@ -3,7 +3,7 @@ import sys
 import torch
 sys.path.append("src")
 
-from mesh.barycentric import Barycentric
+from cable.barycentric import Barycentric
 
 
 class TestBarycentric(unittest.TestCase):

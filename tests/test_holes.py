@@ -5,7 +5,7 @@ import numpy as np
 from pathlib import Path
 
 sys.path.append("src")
-from mesh.holes import Holes
+from cable.holes import Holes
 
 class TestHoles(unittest.TestCase):
 
