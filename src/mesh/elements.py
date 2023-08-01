@@ -40,8 +40,8 @@ class Elements:
             raise ValueError(f"Expected <{name}> to be a 2D tensor, got {len(value.shape)}D tensor.")
 
     def _validate_dtype(self, name, value):
-        if value.dtype != torch.int64:
-            raise ValueError(f"Expected dtype of <{name}> to be torch.int64, got {value.dtype}")
+        if value.dtype != torch.int32:
+            raise ValueError(f"Expected dtype of <{name}> to be torch.int32, got {value.dtype}")
 
     def _validate_triangles_shape(self, name, value):
         if value.shape[-1] != 3:
