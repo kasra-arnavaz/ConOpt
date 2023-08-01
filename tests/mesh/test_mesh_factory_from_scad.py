@@ -14,7 +14,7 @@ class TestMeshFactoryFromScad(unittest.TestCase):
         file = Path("tests/data/caterpillar.scad")
         parameters = Path("tests/data/caterpillar_scad_params.json")
         scad = Scad(file, parameters)
-        cls.mesh = MeshFactoryFromScad(scad, ideal_edge_length=0.02).create()
+        cls.mesh = MeshFactoryFromScad(scad, ideal_edge_length=0.02, device="cpu").create()
 
     def tests_if_node_position_is_not_none(self):
         self.assertIsNotNone(self.mesh.nodes.position)

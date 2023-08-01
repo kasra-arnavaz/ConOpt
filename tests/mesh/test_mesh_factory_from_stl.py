@@ -10,7 +10,7 @@ class TestMeshFactoryFromStl(unittest.TestCase):
 
     def setUp(self):
         file = Path("tests/data/caterpillar.stl")
-        self.mesh = MeshFactoryFromStl(file).create()
+        self.mesh = MeshFactoryFromStl(file, device="cpu").create()
 
     def tests_if_node_position_has_correct_shape(self):
         actual = self.mesh.nodes.position.shape
@@ -33,12 +33,12 @@ class TestMeshFactoryFromStl(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def tests_if_first_element_triangles_is_correct(self):
-        expected = torch.tensor([0, 1, 2], dtype=torch.int64)
+        expected = torch.tensor([0, 1, 2], dtype=torch.int32)
         actual = self.mesh.elements.triangles[0]
         self.assertTrue(torch.equal(expected, actual))
 
     def tests_if_last_element_triangles_is_correct(self):
-        expected = torch.tensor([747, 738, 753], dtype=torch.int64)
+        expected = torch.tensor([747, 738, 753], dtype=torch.int32)
         actual = self.mesh.elements.triangles[-1]
         self.assertTrue(torch.equal(expected, actual))
         

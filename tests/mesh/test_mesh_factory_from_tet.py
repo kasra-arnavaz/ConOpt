@@ -10,7 +10,7 @@ class TestMeshFactoryFromTet(unittest.TestCase):
 
     def setUp(self):
         file = Path("tests/data/caterpillar.tet")
-        self.mesh = MeshFactoryFromTet(file).create()
+        self.mesh = MeshFactoryFromTet(file, device="cpu").create()
 
     def tests_if_node_position_has_correct_shape(self):
         actual = self.mesh.nodes.position.shape
@@ -33,12 +33,12 @@ class TestMeshFactoryFromTet(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def tests_if_first_element_tetrahedra_is_correct(self):
-        expected = torch.tensor([1716, 1473, 2081, 1940], dtype=torch.int64)
+        expected = torch.tensor([1716, 1473, 2081, 1940], dtype=torch.int32)
         actual = self.mesh.elements.tetrahedra[0]
         self.assertTrue(torch.equal(expected, actual))
 
     def tests_if_last_element_tetrahedra_is_correct(self):
-        expected = torch.tensor([786, 105, 60, 2080], dtype=torch.int64)
+        expected = torch.tensor([786, 105, 60, 2080], dtype=torch.int32)
         actual = self.mesh.elements.tetrahedra[-1]
         self.assertTrue(torch.equal(expected, actual))
         
