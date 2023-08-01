@@ -12,8 +12,9 @@ from mesh.scad import Scad
 
 
 class MeshFactory(ABC):
-    def __init__(self, file: PathLike):
+    def __init__(self, file: PathLike, device: str = "cuda"):
         self._file = file
+        self._device = device
 
     @abstractmethod
     def create(self) -> Mesh:
@@ -27,10 +28,10 @@ class _MeshFactoryTriangles(MeshFactory):
         return Mesh(nodes, elements)
 
     def _get_position(self):
-        return torch.from_numpy(self._get_mesh_data().points).to(dtype=torch.float32)
+        return torch.from_numpy(self._get_mesh_data().points).to(dtype=torch.float32, device=self._device)
 
     def _get_triangles(self):
-        return torch.from_numpy(self._get_mesh_data().cells_dict["triangle"]).to(dtype=torch.int64)
+        return torch.from_numpy(self._get_mesh_data().cells_dict["triangle"]).to(dtype=torch.int32, device=self._device)
 
     def _get_mesh_data(self):
         return meshio.read(self._file)
@@ -51,26 +52,27 @@ class MeshFactoryFromMsh(MeshFactory):
         return Mesh(nodes, elements)
 
     def _get_position(self):
-        return torch.from_numpy(self._get_mesh_data().points).to(dtype=torch.float32)
+        return torch.from_numpy(self._get_mesh_data().points).to(dtype=torch.float32, device=self._device)
 
     def _get_tetrahedra(self):
-        return torch.from_numpy(self._get_mesh_data().cells_dict["tetra"]).to(dtype=torch.int64)
+        return torch.from_numpy(self._get_mesh_data().cells_dict["tetra"]).to(dtype=torch.int32, device=self._device)
 
     def _get_mesh_data(self):
         return meshio.read(self._file)
 
 
 class MeshFactoryFromScad(MeshFactory):
-    def __init__(self, scad: Scad, ideal_edge_length: float = 0.02):
+    def __init__(self, scad: Scad, ideal_edge_length: float = 0.02, device: str = "cuda"):
         self.PATH = Path(".tmp")
         self.PATH.mkdir(exist_ok=True)
         self._scad = scad
         self._ideal_edge_length = ideal_edge_length
+        self._device = device
 
     def create(self):
         self._create_files()
-        obj_factory = MeshFactoryFromObj(self._get_obj_file())
-        msh_factory = MeshFactoryFromMsh(self._get_msh_file())
+        obj_factory = MeshFactoryFromObj(file=self._get_obj_file(), device=self._device)
+        msh_factory = MeshFactoryFromMsh(file=self._get_msh_file(), device=self._device)
         position = msh_factory._get_position()
         tetrahedra = msh_factory._get_tetrahedra()
         triangles = obj_factory._get_triangles()
@@ -111,12 +113,12 @@ class MeshFactoryFromTet(MeshFactory):
     def _get_position(self):
         lines = self._get_lines()
         nodes = [list(map(float, line[1:])) for line in lines if line[0] == "v"]
-        return torch.tensor(nodes, dtype=torch.float32)
+        return torch.tensor(nodes, dtype=torch.float32, device=self._device)
 
     def _get_tetrahedra(self):
         lines = self._get_lines()
         elements = [list(map(int, line[1:])) for line in lines if line[0] == "t"]
-        return torch.tensor(elements, dtype=torch.int64)
+        return torch.tensor(elements, dtype=torch.int32, device=self._device)
 
     def _get_lines(self) -> list:
         with open(self._file) as f:

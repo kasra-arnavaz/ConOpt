@@ -12,9 +12,10 @@ class HolesFactory(ABC):
 
 class HolesFactoryFromListOfPositions(HolesFactory):
 
-    def __init__(self, list_of_positions: List[torch.Tensor]):
+    def __init__(self, list_of_positions: List[torch.Tensor], device: str = "cuda"):
         self._list_of_positions = list_of_positions
+        self._device = device
 
     def create(self):
-        return [Holes(position) for position in self._list_of_positions]
+        return [Holes(position.to(device=self._device)) for position in self._list_of_positions]
 
