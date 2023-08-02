@@ -7,7 +7,7 @@ from typing import List
 from mesh.scad import Scad
 
 
-class HolesPositionWhenUnloaded:
+class HolesInitialPosition:
     def __init__(self, scad: Scad):
         self._scad = scad
         self._PATH = Path(".tmp")

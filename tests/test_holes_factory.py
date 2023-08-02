@@ -6,7 +6,7 @@ from pathlib import Path
 sys.path.append("src")
 from cable.holes import Holes
 from cable.holes_factory import HolesFactoryFromListOfPositions
-from cable.holes_position import HolesPositionWhenUnloaded
+from cable.holes_initial_position import HolesInitialPosition
 from mesh.scad import Scad
 
 
@@ -16,7 +16,7 @@ class TestHolesFactoryFromListOfPositions(unittest.TestCase):
         file = Path("tests/data/caterpillar.scad")
         parameters = Path("tests/data/caterpillar_scad_params.json")
         scad = Scad(file, parameters)
-        cls.holes_position = HolesPositionWhenUnloaded(scad).get()
+        cls.holes_position = HolesInitialPosition(scad).get()
 
     def tests_if_a_list_of_holes_is_created(self):
         holes_list = HolesFactoryFromListOfPositions(list_of_positions=self.holes_position).create()

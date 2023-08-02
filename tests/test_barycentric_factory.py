@@ -1,12 +1,13 @@
 import unittest
 import sys
 from pathlib import Path
+import torch
 sys.path.append("src")
 
 from cable.barycentric_factory import BarycentricFactory
 from mesh.mesh_factory import MeshFactoryFromScad
 from cable.holes_factory import HolesFactoryFromListOfPositions
-from cable.holes_position import HolesPositionWhenUnloaded
+from cable.holes_initial_position import HolesInitialPosition
 from mesh.scad import Scad
 
 class TestBarycentricFactory(unittest.TestCase):
@@ -16,7 +17,7 @@ class TestBarycentricFactory(unittest.TestCase):
         file = Path("tests/data/caterpillar.scad")
         parameters = Path("tests/data/caterpillar_scad_params.json")
         scad = Scad(file, parameters)
-        holes_positions = HolesPositionWhenUnloaded(scad).get()
+        holes_positions = HolesInitialPosition(scad).get()
         cls.mesh = MeshFactoryFromScad(scad).create()
         cls.holes = HolesFactoryFromListOfPositions(holes_positions).create()
 
@@ -26,6 +27,11 @@ class TestBarycentricFactory(unittest.TestCase):
                 BarycentricFactory(mesh=self.mesh, holes=holes).create()
             except:
                 self.fail()
+
+    def tests_if_HxN_maps_the_position_of_nodes_to_holes_correctly(self):
+        for holes in self.holes:
+            barycentric = BarycentricFactory(mesh=self.mesh, holes=holes).create()
+            self.assertTrue(torch.allclose(holes.position, barycentric.HxN@self.mesh.nodes.position, atol=1e-5))
 
     def tests_if_HxN_has_the_correct_shape(self):
         for holes in self.holes:
