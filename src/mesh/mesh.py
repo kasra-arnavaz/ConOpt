@@ -1,12 +1,14 @@
 from attrs import define, field
 from mesh.nodes import Nodes
 from mesh.elements import Elements
+from mesh.mesh_properties import MeshProperties
 
 
 @define
 class Mesh:
     nodes: Nodes = field()
     elements: Elements = field()
+    properties: MeshProperties = field(default=None)
 
     @elements.validator
     def _check_max_index(self, attribute, value):
