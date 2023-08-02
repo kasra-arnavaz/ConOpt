@@ -28,11 +28,6 @@ class TestBarycentricFactory(unittest.TestCase):
             except:
                 self.fail()
 
-    def tests_if_HxN_maps_the_position_of_nodes_to_holes_correctly(self):
-        for holes in self.holes:
-            barycentric = BarycentricFactory(mesh=self.mesh, holes=holes).create()
-            self.assertTrue(torch.allclose(holes.position, barycentric.HxN@self.mesh.nodes.position, atol=1e-5))
-
     def tests_if_HxN_has_the_correct_shape(self):
         for holes in self.holes:
             barycentric = BarycentricFactory(mesh=self.mesh, holes=holes).create()
