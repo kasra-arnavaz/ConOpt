@@ -10,7 +10,7 @@ class Points:
 
     def __len__(self):
         return self.position.shape[0]
-    
+
     @velocity.default
     @force.default
     def _set_zero_by_default(self):
@@ -35,6 +35,8 @@ class Points:
             raise ValueError(f"Expected the last dimension of <{name}> to be of size 3, got {value.shape[-1]}.")
         if value.dtype != torch.float32:
             raise ValueError(f"Expected dtype of <{name}> to be torch.float32, got {value.dtype}.")
+        if torch.any(torch.isnan(value)):
+            raise RuntimeError(f"Some of the values of <{name}> are NaN.")
 
     def _validate_equal_shape_with_position(self, name, value):
         if value.shape != self.position.shape:

@@ -60,6 +60,17 @@ class TestPoints(unittest.TestCase):
         with self.assertRaises(ValueError):
             points.position = torch.arange(12).reshape(4, 3).to(dtype=torch.int64)
 
+    def tests_if_runtime_error_is_raised_when_position_initialzied_to_a_tensor_containing_nan(self):
+        p = torch.tensor([[float("nan"), 1.0, 2.0]]).to(dtype=torch.float32)
+        with self.assertRaises(RuntimeError):
+            Points(position=p)
+
+    def tests_if_runtime_error_is_raised_when_position_dtype_is_set_to_a_tensor_containing_nan(self):
+        p = torch.arange(12).reshape(4, 3).to(dtype=torch.float32)
+        points = Points(position=p)
+        with self.assertRaises(RuntimeError):
+            points.position = torch.tensor([[float("nan"), 1.0, 2.0]]).to(dtype=torch.float32)
+
     def tests_if_velocity_is_zeros_like_position_by_default(self):
         p = torch.arange(12).reshape(4, 3).to(dtype=torch.float32)
         points = Points(position=p)
