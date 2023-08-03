@@ -2,7 +2,6 @@ import unittest
 from pathlib import Path
 import sys
 import torch
-import numpy as np
 
 sys.path.append("src")
 
@@ -37,7 +36,7 @@ class TestNodesPositionAndVelocity(unittest.TestCase):
             poissons_ratio=0.45,
             damping_factor=0.4,
             density=1080.0,
-            frozen_bounding_box=[-np.inf, -np.inf, 0, np.inf, np.inf, 2],
+            frozen_bounding_box=[-float("inf"), -float("inf"), 0, float("inf"), float("inf"), 2],
         )
         cls.barycentric = BarycentricFactory(mesh=cls.mesh, holes=cls.holes, device="cuda").create()
         NodesForce(nodes=cls.mesh.nodes, holes=cls.holes, barycentric=cls.barycentric).update()
