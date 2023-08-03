@@ -1,5 +1,6 @@
 from mesh.mesh import Nodes
 import sys
+
 sys.path.append("src")
 
 from cable.holes import Holes
@@ -13,4 +14,4 @@ class NodesForce:
         self._barycentric = barycentric
 
     def update(self):
-        self._nodes.force = self._barycentric.NxH @ self._holes.force
+        self._nodes.force = self._nodes.force + self._barycentric.NxH @ self._holes.force
