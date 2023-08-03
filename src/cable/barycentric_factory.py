@@ -2,12 +2,11 @@ import warp as wp
 import torch
 from mesh.mesh import Mesh
 from cable.holes import Holes
-from utils.geometry import point_is_in_tetrahedron, barycentric_coordinates
+from warp_wrapper.geometry import point_is_in_tetrahedron, barycentric_coordinates
 from cable.barycentric import Barycentric
 
 
 class BarycentricFactory:
-
     def __init__(self, mesh: Mesh, holes: Holes, device: str = "cuda"):
         self._mesh = mesh
         self._holes = holes
@@ -31,15 +30,17 @@ class BarycentricFactory:
             kernel=self._barycentric_kernel,
             dim=[len(self._holes), self._mesh.elements.num_tetrahedra, 4],
             inputs=[holes, nodes, tetrahedra, barycentric_matrix],
-            device=self._device)
+            device=self._device,
+        )
         return wp.to_torch(barycentric_matrix)
-    
+
     @wp.kernel
     def _barycentric_kernel(
         holes: wp.array(dtype=wp.vec3),
         nodes: wp.array(dtype=wp.vec3),
         tetrahedra: wp.array2d(dtype=int),
-        w: wp.array2d(dtype=float)) -> None:
+        w: wp.array2d(dtype=float),
+    ) -> None:
         i, j, k = wp.tid()
         hole_i = holes[i]
         tet_j = tetrahedra[j]
