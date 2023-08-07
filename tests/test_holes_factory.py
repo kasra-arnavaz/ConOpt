@@ -1,6 +1,5 @@
 import unittest
 import sys
-import torch
 from pathlib import Path
 
 sys.path.append("src")
