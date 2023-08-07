@@ -45,7 +45,7 @@ class HolesInitialPosition:
         file = np.loadtxt(self._get_echo_file(), dtype=str, delimiter=",").tolist()
         for line in file:
             line[0] = line[0].replace("ECHO:", "")
-        return 0.1 * torch.from_numpy(np.array(file, dtype=np.float32))  # 0.1 for mm to cm
+        return torch.from_numpy(np.array(file, dtype=np.float32))
 
     def _get_num_holes_per_cable(self):
         return (2 * self._get_cable_length()).tolist()
