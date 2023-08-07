@@ -46,7 +46,7 @@ class TestSimulation(unittest.TestCase):
             torch.tensor(0.0, device="cuda"),
         ]
         cables = CableFactory(stiffness=100, damping=0.01, pull_ratio=pull_ratio, holes=holes).create()
-        cls.simulation = Simulation(mesh=mesh, cables=cables, duration=0.5, dt=2.1701388888888886e-05, device="cuda")
+        cls.simulation = Simulation(mesh=mesh, cables=cables, duration=1.5, dt=2.1701388888888886e-05, device="cuda")
 
     def tests_if_simulation_runs(self):
         try:

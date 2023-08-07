@@ -2,6 +2,7 @@ import sys
 from typing import List
 import tqdm
 import torch
+from torch.utils.checkpoint import checkpoint
 
 sys.path.append("src")
 from mesh.mesh import Mesh
@@ -12,8 +13,6 @@ from mesh.nodes_force import NodesForce
 from mesh.nodes_position_and_velocity import NodesPositionAndVelocity
 from cable.barycentric_factory import BarycentricFactory
 from warp_wrapper.model_factory import ModelFactory
-
-import meshio
 
 
 class Simulation:
@@ -35,7 +34,7 @@ class Simulation:
         self._zero_forces()
         self._update_holes()
         self._update_nodes_force()
-        self._update_nodes_position_and_velocity()
+        checkpoint(self._update_nodes_position_and_velocity)
 
     def _update_holes(self):
         for c, h, b in zip(self._cables, self._holes, self._barycentric):
