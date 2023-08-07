@@ -45,7 +45,6 @@ class ModelFactory:
     def _apply_boundary_conditions(self, builder: ModelBuilder):
         builder.particle_mass = torch.tensor(builder.particle_mass, device=self._device)
         mask = self._is_inside_frozen_bounding_box(self._soft_mesh)
-        print(mask.sum())
         builder.particle_mass[mask] = 0.0
         builder.particle_mass = builder.particle_mass.tolist()
 
