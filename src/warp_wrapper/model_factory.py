@@ -40,11 +40,12 @@ class ModelFactory:
             k_damp=properties.damping_factor,
         )
         self._apply_boundary_conditions(builder)
-        self._set_soft_mesh_triangles(builder) # TODO: see if this is different from what mesh_factory creates
+        self._set_soft_mesh_triangles(builder)
 
     def _apply_boundary_conditions(self, builder: ModelBuilder):
         builder.particle_mass = torch.tensor(builder.particle_mass, device=self._device)
         mask = self._is_inside_frozen_bounding_box(self._soft_mesh)
+        print(mask.sum())
         builder.particle_mass[mask] = 0.0
         builder.particle_mass = builder.particle_mass.tolist()
 
@@ -73,6 +74,6 @@ class ModelFactory:
         model.tri_ke, model.tri_ka, model.tri_kd, model.tri_kb = 0.0, 0.0, 0.0, 0.0
         model.ground = False
         model.gravity = (0.0, -9.8, 0.0)
-        model.soft_contact_distance = 0.0
+        model.soft_contact_distance = 0.1
         model.soft_contact_ke, model.soft_contact_kd, model.soft_contact_kf = 0.1, 0.1, 0.1
         return model
