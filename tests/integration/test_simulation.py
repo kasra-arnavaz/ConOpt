@@ -41,7 +41,7 @@ class TestSimulation(unittest.TestCase):
         for hole in holes:
             transform.apply(hole)
         pull_ratio = [
-            torch.tensor(0.8, device="cuda"),
+            torch.tensor(0.5, device="cuda"),
             torch.tensor(0.0, device="cuda"),
             torch.tensor(0.0, device="cuda"),
         ]
