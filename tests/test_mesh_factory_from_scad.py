@@ -18,9 +18,6 @@ class TestMeshFactoryFromScad(unittest.TestCase):
     def tests_if_node_position_is_not_none(self):
         self.assertIsNotNone(self.mesh.nodes.position)
 
-    def tests_if_element_triangles_is_not_none(self):
-        self.assertIsNotNone(self.mesh.elements.triangles)
-
     def tests_if_element_tetrahedra_is_not_none(self):
         self.assertIsNotNone(self.mesh.elements.tetrahedra)
 

@@ -70,13 +70,11 @@ class MeshFactoryFromScad(MeshFactory):
 
     def create(self):
         self._create_files()
-        obj_factory = MeshFactoryFromObj(file=self._get_obj_file(), device=self._device)
         msh_factory = MeshFactoryFromMsh(file=self._get_msh_file(), device=self._device)
         position = msh_factory._get_position()
         tetrahedra = msh_factory._get_tetrahedra()
-        triangles = obj_factory._get_triangles()
         nodes = Nodes(position=position)
-        elements = Elements(triangles=triangles, tetrahedra=tetrahedra)
+        elements = Elements(tetrahedra=tetrahedra)
         return Mesh(nodes, elements)
 
     def _create_files(self):
@@ -95,9 +93,6 @@ class MeshFactoryFromScad(MeshFactory):
 
     def _get_msh_file(self):
         return self.PATH / "mesh.msh"
-
-    def _get_obj_file(self):
-        return self.PATH / "mesh.msh__sf.obj"
 
     def _get_stl_file(self):
         return self.PATH / "mesh.stl"
