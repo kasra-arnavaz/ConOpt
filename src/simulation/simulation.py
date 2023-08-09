@@ -16,15 +16,15 @@ from warp_wrapper.model_factory import ModelFactory
 
 
 class Simulation:
-    def __init__(self, mesh: Mesh, cables: List[Cable], duration: float, dt: float, device: str = "cuda"):
-        self._mesh = mesh
+    def __init__(self, gripper_mesh: Mesh, cables: List[Cable], duration: float, dt: float, object_mesh: Mesh = None, device: str = "cuda"):
+        self._mesh = gripper_mesh
         self._cables = cables
         self._num_steps = int(duration / dt)
         self._dt = dt
         self._device = device
         self._holes = [cable.holes for cable in cables]
         self._barycentric = [BarycentricFactory(self._mesh, holes, self._device).create() for holes in self._holes]
-        self._model = ModelFactory(soft_mesh=mesh, device="cuda").create()
+        self._model = ModelFactory(soft_mesh=gripper_mesh, shape_mesh=object_mesh, device="cuda").create()
 
     def run(self):
         for _ in tqdm.tqdm(range(self._num_steps), desc="Simulation", colour="green", leave=False):
