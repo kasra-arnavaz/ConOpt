@@ -25,8 +25,9 @@ class TestRenderingVisualization(unittest.TestCase):
         file = Path("tests/data/caterpillar.scad")
         parameters = Path("tests/data/caterpillar_scad_params.json")
         scad = Scad(file, parameters)
-        gripper_mesh = MeshFactoryFromScad(scad, ideal_edge_length=0.02).create()
-        gripper_mesh.properties = MeshProperties(
+        cls.gripper_mesh = MeshFactoryFromScad(scad, ideal_edge_length=0.02).create()
+        cls.object_mesh = MeshFactoryFromObj(Path("tests/data/cylinder.obj"), device="cuda").create()
+        cls.gripper_mesh.properties = MeshProperties(
             name="caterpillar",
             density=1080.0,
             youngs_modulus=200_000,
@@ -34,12 +35,13 @@ class TestRenderingVisualization(unittest.TestCase):
             damping_factor=0.4,
             frozen_bounding_box=[-float("inf"), -0.01, -float("inf"), float("inf"), float("inf"), float("inf")],
         )
+        cls.object_mesh.properties = MeshProperties(name="cylinder", density=1080.)
         transform = Transform(
             rotation=get_quaternion(vector=[1, 0, 0], angle_in_degrees=90), scale=[0.001, 0.001, 0.001]
         )
         holes_position = HolesInitialPosition(scad).get()
         holes = HolesFactoryFromListOfPositions(holes_position).create()
-        transform.apply(gripper_mesh.nodes)
+        transform.apply(cls.gripper_mesh.nodes)
         for hole in holes:
             transform.apply(hole)
         pull_ratio = [
@@ -47,12 +49,9 @@ class TestRenderingVisualization(unittest.TestCase):
             torch.tensor(0.0, device="cuda"),
             torch.tensor(0.0, device="cuda"),
         ]
+        transform.apply(cls.object_mesh.nodes)
         cables = CableFactory(stiffness=100, damping=0.01, pull_ratio=pull_ratio, holes=holes).create()
-        Simulation(mesh=gripper_mesh, cables=cables, duration=0.5, dt=2.1701388888888886e-05, device="cuda").run()
-        cls.gripper_mesh = gripper_mesh
-        object_mesh = MeshFactoryFromObj(Path("tests/data/cylinder.obj"), device="cuda").create()
-        transform.apply(object_mesh.nodes)
-        cls.object_mesh = object_mesh
+        Simulation(gripper_mesh=cls.gripper_mesh, object_mesh=cls.object_mesh, cables=cables, duration=0.5, dt=2.1701388888888886e-05, device="cuda").run()
 
         
     def tests_if_exterior_depth_rendering_of_gripper_runs_given_six_views(self):
