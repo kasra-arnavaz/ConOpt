@@ -4,7 +4,7 @@ import torch
 import numpy as np
 
 sys.path.append("src")
-from variable.variables import Variables
+from objective.variables import Variables
 class TestVariables(unittest.TestCase):
 
     def tests_if_parameters_is_an_empty_list_by_default(self):

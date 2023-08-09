@@ -14,7 +14,7 @@ from cable.holes_initial_position import HolesInitialPosition
 from point.transform import Transform, get_quaternion
 from rendering.views import ThreeInteriorViews
 from rendering.rendering import ExteriorDepthRendering, InteriorGapRendering, InteriorContactRendering
-from loss.loss import MaxGripLoss
+from objective.loss import MaxGripLoss
 
 class TestMaxGripLoss(unittest.TestCase):
 
