@@ -11,7 +11,7 @@ from rendering.views import Views, ExteriorViews, InteriorViews
 
 class DepthRendering(ABC):
     def __init__(self, meshes: List[Mesh], views: Views, device: str = "cuda"):
-        self._meshes = self._get_meshes(meshes)
+        self._meshes = meshes
         self._views = views.get()
         self._device = device
         self._znear = 0.001
@@ -22,9 +22,8 @@ class DepthRendering(ABC):
     def get_images(self) -> List[torch.Tensor]:
         pass
 
-    @staticmethod
-    def _get_meshes(meshes: List[Mesh]):
-        meshes = [structures.Meshes(mesh.nodes.position[None], mesh.elements.triangles[None]) for mesh in meshes]
+    def _get_meshes(self):
+        meshes = [structures.Meshes(mesh.nodes.position[None], mesh.elements.triangles[None]) for mesh in self._meshes]
         return structures.join_meshes_as_batch(meshes)
 
     def _get_cameras(self):
@@ -42,7 +41,7 @@ class DepthRendering(ABC):
         return [renderer.MeshRasterizer(cameras=camera, raster_settings=settings) for camera in self._get_cameras()]
 
     def _get_zbuf(self):
-        return [rasterizer(self._meshes).zbuf for rasterizer in self._get_rasterizers()]
+        return [rasterizer(self._get_meshes()).zbuf for rasterizer in self._get_rasterizers()]
 
 
 class ExteriorDepthRendering(DepthRendering):
