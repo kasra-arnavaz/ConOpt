@@ -12,6 +12,8 @@ class Variables:
             raise ValueError("Only torch.Tensor objects can be added to <parameters>.")
         self.parameters.append(p.requires_grad_())
     
-    @property
-    def gradients(self):
-        return [parameter.grad for parameter in self.parameters]
+    def set_gradients(self):
+        self.gradients = [parameter.grad for parameter in self.parameters]
+    
+    def __len__(self):
+        return len(self.parameters)
