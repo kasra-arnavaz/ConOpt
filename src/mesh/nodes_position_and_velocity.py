@@ -16,14 +16,10 @@ class NodesPositionAndVelocity:
         self._dt = dt
 
     def update(self):
-        state_now = self._model.state(requires_grad=True)
-        state_next = self._model.state(requires_grad=True)
         self._nodes.position, self._nodes.velocity = UpdateState.apply(
             self._nodes.force,
             self._nodes.position,
             self._nodes.velocity,
             self._model,
             self._dt,
-            state_now,
-            state_next,
         )
