@@ -33,9 +33,9 @@ class TestStateIterable(unittest.TestCase):
 
     def tests_if_states_are_iterated_recursively(self):
         states = [next(self.state_iterable) for _ in range(6)]
-        self.assertTrue(states[0] is states[3])
-        self.assertTrue(states[1] is states[4])
-        self.assertTrue(states[2] is states[5])
+        self.assertTrue(states[1] is states[2])
+        self.assertTrue(states[3] is states[4])
+        self.assertTrue(states[5] is states[0])
 
 
 if __name__ == "__main__":
