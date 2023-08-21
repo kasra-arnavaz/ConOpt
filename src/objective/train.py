@@ -1,5 +1,6 @@
 import tqdm
 import sys
+
 sys.path.append("src")
 
 from simulation.simulation import Simulation
@@ -9,6 +10,7 @@ from rendering.visualization import Visualization
 from rendering.views import ThreeExteriorViews
 from rendering.rendering import ExteriorDepthRendering
 
+
 class Train:
     def __init__(self, simulation: Simulation, loss: Loss, optimizer: Optimizer, num_iters: int):
         self._simulation = simulation
@@ -17,16 +19,21 @@ class Train:
         self._num_iters = num_iters
 
     def run(self, verbose: bool = True):
-        for i in tqdm.tqdm(range(self._num_iters), desc="Training", colour="blue", leave=False, disable=~verbose):
-            views = ThreeExteriorViews(distance=0.5, device="cuda")
-            rendering = ExteriorDepthRendering(meshes=[self._simulation._mesh, self._simulation._object_mesh], views=views, device="cuda")
-            Visualization(rendering).show_images()
+        for i in tqdm.tqdm(
+            range(self._num_iters),
+            desc="Training",
+            colour="blue",
+            leave=False,
+            disable=~verbose,
+        ):
+            # Visualization(rendering).show_images()
             self._simulation.run()
             self._loss.backward()
-            Visualization(rendering).show_images()
+
             self._optimizer.step()
             self.print(i)
-            # self._simulation.reset_states()
+        # Visualization(rendering).show_images()
+        # self._simulation.reset_states()
 
     def print(self, iteration):
         print(f"Iter: {iteration}")

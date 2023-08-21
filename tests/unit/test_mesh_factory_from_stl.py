@@ -2,12 +2,13 @@ import unittest
 import torch
 from pathlib import Path
 import sys
+
 sys.path.append("src")
 
 from mesh.mesh_factory import MeshFactoryFromStl
 
-class TestMeshFactoryFromStl(unittest.TestCase):
 
+class TestMeshFactoryFromStl(unittest.TestCase):
     def setUp(self):
         file = Path("tests/data/caterpillar.stl")
         self.mesh = MeshFactoryFromStl(file, device="cpu").create()
@@ -41,7 +42,6 @@ class TestMeshFactoryFromStl(unittest.TestCase):
         expected = torch.tensor([747, 738, 753], dtype=torch.int32)
         actual = self.mesh.elements.triangles[-1]
         self.assertTrue(torch.equal(expected, actual))
-        
 
 
 if __name__ == "__main__":

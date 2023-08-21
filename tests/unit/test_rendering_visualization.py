@@ -17,16 +17,13 @@ class TestRenderingVisualization(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        transform = Transform(
-            rotation=get_quaternion(vector=[1, 0, 0], angle_in_degrees=30), scale=[0.01, 0.01, 0.01]
-        )
+        transform = Transform(rotation=get_quaternion(vector=[1, 0, 0], angle_in_degrees=30), scale=[0.01, 0.01, 0.01])
         object_mesh = MeshFactoryFromObj(Path("tests/data/cylinder.obj"), device="cuda").create()
         transform.apply(object_mesh.nodes)
         cls.object_mesh = object_mesh
 
-        
     def tests_if_exterior_depth_rendering_of_gripper_is_visualized_given_six_views(self):
-        views = SixExteriorViews(distance=1., device="cuda")
+        views = SixExteriorViews(distance=1.0, device="cuda")
         rendering = ExteriorDepthRendering(meshes=[self.object_mesh], views=views)
         try:
             Visualization(rendering).save_images(Path(".tmp/rendering.png"))

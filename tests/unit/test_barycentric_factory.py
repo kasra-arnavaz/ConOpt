@@ -2,6 +2,7 @@ import unittest
 import sys
 from pathlib import Path
 import torch
+
 sys.path.append("src")
 
 from cable.barycentric_factory import BarycentricFactory
@@ -10,8 +11,8 @@ from cable.holes_factory import HolesFactoryFromListOfPositions
 from cable.holes_initial_position import HolesInitialPosition
 from mesh.scad import Scad
 
-class TestBarycentricFactory(unittest.TestCase):
 
+class TestBarycentricFactory(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         file = Path("tests/data/caterpillar.scad")
@@ -39,8 +40,5 @@ class TestBarycentricFactory(unittest.TestCase):
             self.assertEqual(list(barycentric.NxH.shape), [len(self.mesh.nodes), len(holes)])
 
 
-
-
-            
 if __name__ == "__main__":
     unittest.main()

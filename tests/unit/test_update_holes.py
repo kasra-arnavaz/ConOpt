@@ -2,6 +2,7 @@ import unittest
 import sys
 from pathlib import Path
 import torch
+
 sys.path.append("src")
 
 from cable.barycentric_factory import BarycentricFactory
@@ -35,7 +36,6 @@ class TestHolesForce(unittest.TestCase):
 
 
 class TestHolesPositionAndVelocity(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         file = Path("tests/data/caterpillar.scad")
@@ -55,9 +55,5 @@ class TestHolesPositionAndVelocity(unittest.TestCase):
             self.assertTrue(torch.allclose(holes.velocity, holes_velocity_before, atol=1e-5))
 
 
-
-
-
-            
 if __name__ == "__main__":
     unittest.main()

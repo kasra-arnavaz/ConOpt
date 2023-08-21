@@ -1,6 +1,7 @@
 import torch
 from attrs import define, field
 
+
 @define(frozen=True)
 class Barycentric:
     HxN: torch.Tensor = field()

@@ -9,11 +9,11 @@ class Cable:
     pull_ratio: torch.Tensor = field(on_setattr=lambda self, attribute, value: torch.clip(value, min=0))
     stiffness: float = field(default=100.0)
     damping: float = field(default=0.01)
-    
+
     @pull_ratio.default
     def _default_pull_ratio(self):
-        return torch.tensor(0., dtype=torch.float32)
-    
+        return torch.tensor(0.0, dtype=torch.float32)
+
     @pull_ratio.validator
     def _check_type_and_shape(self, attribute, value):
         name = attribute.name

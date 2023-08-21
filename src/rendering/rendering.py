@@ -12,8 +12,8 @@ from rendering.views import Views, ExteriorViews, InteriorViews
 class DepthRendering(ABC):
     def __init__(self, meshes: List[Mesh], views: Views, device: str = "cuda"):
         self._meshes = meshes
-        self._views = views.get()
         self._device = device
+        self._views = views.get()
         self._znear = 0.001
         self._zfar = 10
         self._fov = 90
@@ -31,7 +31,12 @@ class DepthRendering(ABC):
         for view in self._views:
             cameras.append(
                 renderer.FoVPerspectiveCameras(
-                    R=view[0], T=view[1], znear=self._znear, zfar=self._zfar, fov=self._fov, device=self._device
+                    R=view[0],
+                    T=view[1],
+                    znear=self._znear,
+                    zfar=self._zfar,
+                    fov=self._fov,
+                    device=self._device,
                 )
             )
         return cameras
@@ -60,7 +65,13 @@ class ExteriorDepthRendering(DepthRendering):
 
 
 class InteriorDepthRendering(DepthRendering):
-    def __init__(self, gripper_mesh: Mesh, object_mesh: Mesh, views: InteriorViews, device: str = "cuda"):
+    def __init__(
+        self,
+        gripper_mesh: Mesh,
+        object_mesh: Mesh,
+        views: InteriorViews,
+        device: str = "cuda",
+    ):
         super().__init__([gripper_mesh, object_mesh], views, device)
 
 

@@ -15,7 +15,6 @@ class Optimizer(ABC):
 
 
 class GradientDescent(Optimizer):
-
     def __init__(self, loss: Loss, variables: Variables, learning_rate: float):
         super().__init__(loss, variables)
         self._learning_rate = learning_rate
@@ -24,11 +23,12 @@ class GradientDescent(Optimizer):
     def step(self):
         self._variables.set_gradients()
         for i in range(len(self._variables)):
-            self._variables.parameters[i] =  self._variables.parameters[i] - self._variables.gradients[i] * self._learning_rate
+            self._variables.parameters[i] = (
+                self._variables.parameters[i] - self._variables.gradients[i] * self._learning_rate
+            )
 
 
 class Adam(Optimizer):
-
     def __init__(self, loss: Loss, variables: Variables, learning_rate: float):
         super().__init__(loss, variables)
         self._learning_rate = learning_rate
@@ -43,8 +43,13 @@ class Adam(Optimizer):
             self._m = torch.zeros_like(self._variables.parameters[i])
             self._v = torch.zeros_like(self._variables.parameters[i])
             self._m = self._betas[0] * self._m + (1.0 - self._betas[0]) * self._variables.gradients[i]
-            self._v = self._betas[1] * self._v + (1.0 - self._betas[1]) * self._variables.gradients[i] * self._variables.gradients[i]
+            self._v = (
+                self._betas[1] * self._v
+                + (1.0 - self._betas[1]) * self._variables.gradients[i] * self._variables.gradients[i]
+            )
             mhat = self._m / (1.0 - (self._betas[0] ** (self._t + 1.0)))
             vhat = self._v / (1.0 - (self._betas[1] ** (self._t + 1.0)))
-            self._variables.parameters[i] = self._variables.parameters[i] - self._learning_rate * mhat / (torch.sqrt(vhat) + self._eps)
+            self._variables.parameters[i] = self._variables.parameters[i] - self._learning_rate * mhat / (
+                torch.sqrt(vhat) + self._eps
+            )
         self._t += 1

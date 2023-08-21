@@ -8,6 +8,7 @@ from warp.sim import Model
 from cable.holes import Holes
 from cable.barycentric import Barycentric
 
+
 class NodesForce:
     def __init__(self, nodes: Nodes, holes: Holes, barycentric: Barycentric):
         self._nodes = nodes

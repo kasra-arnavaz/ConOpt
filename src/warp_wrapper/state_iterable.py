@@ -1,7 +1,7 @@
 from warp.sim import Model
 
-class StateIterable:
 
+class StateIterable:
     def __init__(self, model: Model, num: int = 23040):
         self.states = [model.state(requires_grad=True) for _ in range(num)]
         self._index = 0

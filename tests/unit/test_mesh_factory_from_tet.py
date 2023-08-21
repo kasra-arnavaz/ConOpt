@@ -2,12 +2,13 @@ import unittest
 import torch
 from pathlib import Path
 import sys
+
 sys.path.append("src")
 
 from mesh.mesh_factory import MeshFactoryFromTet
 
-class TestMeshFactoryFromTet(unittest.TestCase):
 
+class TestMeshFactoryFromTet(unittest.TestCase):
     def setUp(self):
         file = Path("tests/data/caterpillar.tet")
         self.mesh = MeshFactoryFromTet(file, device="cpu").create()
@@ -41,7 +42,6 @@ class TestMeshFactoryFromTet(unittest.TestCase):
         expected = torch.tensor([786, 105, 60, 2080], dtype=torch.int32)
         actual = self.mesh.elements.tetrahedra[-1]
         self.assertTrue(torch.equal(expected, actual))
-        
 
 
 if __name__ == "__main__":

@@ -16,8 +16,8 @@ from rendering.views import ThreeInteriorViews
 from rendering.rendering import ExteriorDepthRendering, InteriorGapRendering, InteriorContactRendering
 from objective.loss import MaxGripLoss
 
-class TestMaxGripLoss(unittest.TestCase):
 
+class TestMaxGripLoss(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         file = Path("tests/data/caterpillar.scad")
@@ -33,7 +33,7 @@ class TestMaxGripLoss(unittest.TestCase):
             damping_factor=0.4,
             frozen_bounding_box=[-float("inf"), -0.01, -float("inf"), float("inf"), float("inf"), float("inf")],
         )
-        object_mesh.properties = MeshProperties(name="cylinder", density=1080.)
+        object_mesh.properties = MeshProperties(name="cylinder", density=1080.0)
         transform = Transform(
             rotation=get_quaternion(vector=[1, 0, 0], angle_in_degrees=90), scale=[0.001, 0.001, 0.001]
         )
@@ -49,12 +49,18 @@ class TestMaxGripLoss(unittest.TestCase):
         ]
         transform.apply(object_mesh.nodes)
         cables = CableFactory(stiffness=100, damping=0.01, pull_ratio=pull_ratio, holes=holes).create()
-        Simulation(gripper_mesh=gripper_mesh, object_mesh=object_mesh, cables=cables, duration=0.5, dt=2.1701388888888886e-05, device="cuda").run()
+        Simulation(
+            gripper_mesh=gripper_mesh,
+            object_mesh=object_mesh,
+            cables=cables,
+            duration=0.5,
+            dt=2.1701388888888886e-05,
+            device="cuda",
+        ).run()
         views = ThreeInteriorViews(center=object_mesh.nodes.position.mean(dim=0), device="cuda")
         rendering = InteriorGapRendering(gripper_mesh=gripper_mesh, object_mesh=object_mesh, views=views)
         cls.loss = MaxGripLoss(rendering=rendering, device="cuda").get_loss()
 
-        
     def tests_if_max_grip_loss_is_of_type_torch_tensor(self):
         self.assertIsInstance(self.loss, torch.Tensor)
 

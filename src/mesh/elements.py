@@ -1,6 +1,7 @@
 import torch
 from attrs import define, field
 
+
 @define
 class Elements:
     triangles: torch.Tensor = field(default=None)

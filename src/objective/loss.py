@@ -1,18 +1,20 @@
 from abc import ABC, abstractmethod
 import torch
 import sys
+
 sys.path.append("src")
 
 from rendering.rendering import InteriorGapRendering
 
-class Loss(ABC):
 
+class Loss(ABC):
     @abstractmethod
     def get_loss(self) -> torch.Tensor:
         pass
 
     def backward(self):
         self.get_loss().backward()
+
 
 class MaxGripLoss(Loss):
     def __init__(self, rendering: InteriorGapRendering, device: str = "cuda"):

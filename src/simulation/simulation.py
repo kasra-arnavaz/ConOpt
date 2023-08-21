@@ -1,41 +1,49 @@
 import sys
 from typing import List
 import tqdm
-from torch.utils.checkpoint import checkpoint
 import torch
+from torch.utils.checkpoint import checkpoint
 
 sys.path.append("src")
 from mesh.mesh import Mesh
 from cable.cable import Cable
-from cable.holes_position_and_velocity import HolesPositionAndVelocity
-from cable.holes_force import HolesForce
-from mesh.nodes_force import NodesForce
-from mesh.nodes_position_and_velocity import NodesPositionAndVelocity
+from simulation.update_holes import HolesForce, HolesPositionAndVelocity
+from simulation.update_nodes import NodesForce, NodesPositionAndVelocity
 from cable.barycentric_factory import BarycentricFactory
 from warp_wrapper.model_factory import ModelFactory
 from warp_wrapper.state_iterable import StateIterable
 
 
 class Simulation:
-    def __init__(self, gripper_mesh: Mesh, cables: List[Cable], duration: float, dt: float, object_mesh: Mesh = None, device: str = "cuda"):
+    def __init__(
+        self,
+        gripper_mesh: Mesh,
+        cables: List[Cable],
+        duration: float,
+        dt: float,
+        object_mesh: Mesh = None,
+        device: str = "cuda",
+    ):
         self._NUM_SUBSTEPS = 23040
+
         self._mesh = gripper_mesh
         self._cables = cables
         total_steps = int(duration / dt)
         self._num_segments = int(total_steps / self._NUM_SUBSTEPS)
         self._dt = dt
         self._device = device
-        self._barycentrics = [BarycentricFactory(self._mesh, cable.holes, self._device).create() for cable in self._cables]
+        self._barycentrics = [BarycentricFactory(self._mesh, cable.holes, device).create() for cable in self._cables]
         self._object_mesh = object_mesh
         self._model = ModelFactory(soft_mesh=gripper_mesh, shape_mesh=object_mesh, device=device).create()
         # self._state_iterable = StateIterable(model=self._model)
 
-
     def run(self):
         for _ in tqdm.tqdm(range(self._num_segments), desc="Simulation", colour="green", leave=False):
-            self._update_segment()
+            # with set_checkpoint_early_stop(False):
+            checkpoint(self._update_segment, use_reentrant=False)
 
     def _update_segment(self):
+        self._NUM_SUBSTEPS = 1
         for _ in range(self._NUM_SUBSTEPS):
             self._zero_forces()
             self._update_holes()

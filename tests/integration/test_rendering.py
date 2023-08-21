@@ -35,7 +35,7 @@ class TestRenderingVisualization(unittest.TestCase):
             damping_factor=0.4,
             frozen_bounding_box=[-float("inf"), -0.01, -float("inf"), float("inf"), float("inf"), float("inf")],
         )
-        cls.object_mesh.properties = MeshProperties(name="cylinder", density=1080.)
+        cls.object_mesh.properties = MeshProperties(name="cylinder", density=1080.0)
         transform = Transform(
             rotation=get_quaternion(vector=[1, 0, 0], angle_in_degrees=90), scale=[0.001, 0.001, 0.001]
         )
@@ -51,9 +51,15 @@ class TestRenderingVisualization(unittest.TestCase):
         ]
         transform.apply(cls.object_mesh.nodes)
         cables = CableFactory(stiffness=100, damping=0.01, pull_ratio=pull_ratio, holes=holes).create()
-        Simulation(gripper_mesh=cls.gripper_mesh, object_mesh=cls.object_mesh, cables=cables, duration=0.5, dt=2.1701388888888886e-05, device="cuda").run()
+        Simulation(
+            gripper_mesh=cls.gripper_mesh,
+            object_mesh=cls.object_mesh,
+            cables=cables,
+            duration=0.5,
+            dt=2.1701388888888886e-05,
+            device="cuda",
+        ).run()
 
-        
     def tests_if_exterior_depth_rendering_of_gripper_runs_given_six_views(self):
         views = SixExteriorViews(distance=0.5, device="cuda")
         rendering = ExteriorDepthRendering(meshes=[self.gripper_mesh], views=views)
@@ -68,8 +74,8 @@ class TestRenderingVisualization(unittest.TestCase):
         try:
             rendering.get_images()
         except:
-            self.fail()    
-    
+            self.fail()
+
     def tests_if_interior_contact_rendering_runs_given_six_views(self):
         views = SixInteriorViews(center=self.object_mesh.nodes.position.mean(dim=0), device="cuda")
         rendering = InteriorContactRendering(self.gripper_mesh, self.object_mesh, views)
@@ -77,6 +83,7 @@ class TestRenderingVisualization(unittest.TestCase):
             rendering.get_images()
         except:
             self.fail()
+
 
 if __name__ == "__main__":
     unittest.main()

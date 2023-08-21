@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 from os import PathLike
 
-class Visualization:
 
+class Visualization:
     def __init__(self, rendering: DepthRendering):
         self._images = rendering.get_images()
 
@@ -28,6 +28,3 @@ class Visualization:
             plt.axis("off")
             figures.append(fig)
         return figures
-
-
-
