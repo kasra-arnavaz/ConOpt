@@ -4,9 +4,9 @@ from attrs import define, field
 
 @define
 class Points:
-    position: torch.Tensor = field()
-    velocity: torch.Tensor = field(init=False)
-    force: torch.Tensor = field(init=False)
+    position: torch.Tensor = field(on_setattr=lambda self, attribute, value: value.requires_grad_())
+    velocity: torch.Tensor = field(init=False, on_setattr=lambda self, attribute, value: value.requires_grad_())
+    force: torch.Tensor = field(init=False, on_setattr=lambda self, attribute, value: value.requires_grad_())
 
     def __len__(self):
         return self.position.shape[0]
@@ -14,7 +14,7 @@ class Points:
     @velocity.default
     @force.default
     def _set_zero_by_default(self):
-        return torch.zeros_like(self.position)
+        return torch.zeros_like(self.position, requires_grad=True)
 
     @position.validator
     def _validate_position(self, attribute, value):
@@ -37,6 +37,8 @@ class Points:
             raise ValueError(f"Expected dtype of <{name}> to be torch.float32, got {value.dtype}.")
         if torch.any(torch.isnan(value)):
             raise RuntimeError(f"Some of the values of <{name}> are NaN.")
+        if value.requires_grad == False:
+            raise RuntimeError(f"Expected <{name}> to require grad.")
 
     def _validate_equal_shape_with_position(self, name, value):
         if value.shape != self.position.shape:

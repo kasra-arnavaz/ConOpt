@@ -16,4 +16,4 @@ class HolesFactoryFromListOfPositions(HolesFactory):
         self._device = device
 
     def create(self):
-        return [Holes(position.to(device=self._device)) for position in self._list_of_positions]
+        return [Holes(position.to(device=self._device).requires_grad_()) for position in self._list_of_positions]

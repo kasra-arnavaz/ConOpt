@@ -19,11 +19,10 @@ class UpdateState(torch.autograd.Function):
         model: Model,
         dt: float,
     ):
-        print("forward")
         ctx.state_now = model.state(requires_grad=True)
         ctx.state_next = model.state(requires_grad=True)
         ctx.tape = wp.Tape()
-        ctx.force = wp.from_torch(force, dtype=wp.vec3)
+        ctx.force = wp.from_torch(force.contiguous(), dtype=wp.vec3)
         with ctx.tape:
             wp.sim.collide(model, ctx.state_now)
             ctx.state_now.clear_forces()
@@ -33,14 +32,12 @@ class UpdateState(torch.autograd.Function):
         model.particle_qd = ctx.state_next.particle_qd
         position_next = wp.to_torch(ctx.state_next.particle_q).requires_grad_()
         velocity_next = wp.to_torch(ctx.state_next.particle_qd).requires_grad_()
-
         return position_next, velocity_next
 
     @staticmethod
     def backward(ctx, grad_position_next, grad_velocity_next):
-        print("backward")
-        ctx.state_next.particle_q.grad = wp.from_torch(grad_position_next, dtype=wp.vec3)
-        ctx.state_next.particle_qd.grad = wp.from_torch(grad_velocity_next, dtype=wp.vec3)
+        ctx.state_next.particle_q.grad = wp.from_torch(grad_position_next.contiguous(), dtype=wp.vec3)
+        ctx.state_next.particle_qd.grad = wp.from_torch(grad_velocity_next.contiguous(), dtype=wp.vec3)
         ctx.tape.backward()
 
         return (

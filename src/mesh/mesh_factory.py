@@ -22,7 +22,7 @@ class MeshFactory(ABC):
 
 class _MeshFactoryTriangles(MeshFactory):
     def create(self):
-        nodes = Nodes(position=self._get_position())
+        nodes = Nodes(position=self._get_position().requires_grad_())
         elements = Elements(triangles=self._get_triangles())
         return Mesh(nodes, elements)
 
@@ -46,7 +46,7 @@ class MeshFactoryFromStl(_MeshFactoryTriangles):
 
 class MeshFactoryFromMsh(MeshFactory):
     def create(self):
-        nodes = Nodes(position=self._get_position())
+        nodes = Nodes(position=self._get_position().requires_grad_())
         elements = Elements(tetrahedra=self._get_tetrahedra())
         return Mesh(nodes, elements)
 
@@ -71,7 +71,7 @@ class MeshFactoryFromScad(MeshFactory):
     def create(self):
         self._create_files()
         msh_factory = MeshFactoryFromMsh(file=self._get_msh_file(), device=self._device)
-        position = msh_factory._get_position()
+        position = msh_factory._get_position().requires_grad_()
         tetrahedra = msh_factory._get_tetrahedra()
         nodes = Nodes(position=position)
         elements = Elements(tetrahedra=tetrahedra)

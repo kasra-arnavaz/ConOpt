@@ -32,7 +32,7 @@ class ModelFactory:
             rot=np.array([0, 0, 0, 1]),
             scale=1,
             vel=[0, 0, 0],
-            vertices=self._soft_mesh.nodes.position.cpu().numpy(),
+            vertices=self._soft_mesh.nodes.position.detach().cpu().numpy(),
             indices=self._soft_mesh.elements.tetrahedra.cpu().numpy().reshape(-1),
             density=properties.density,
             k_mu=k_mu,
@@ -62,7 +62,7 @@ class ModelFactory:
         builder.add_shape_mesh(
             body=-1,
             mesh=wp.sim.Mesh(
-                self._shape_mesh.nodes.position.cpu().numpy(),
+                self._shape_mesh.nodes.position.detach().cpu().numpy(),
                 self._shape_mesh.elements.triangles.cpu().numpy().reshape(-1),
             ),
             density=self._shape_mesh.properties.density,

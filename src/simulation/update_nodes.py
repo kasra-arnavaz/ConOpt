@@ -4,9 +4,11 @@ import sys
 sys.path.append("src")
 
 from warp_wrapper.update_state import UpdateState
+from warp_wrapper.state_iterable import StateIterable
 from warp.sim import Model
 from cable.holes import Holes
 from cable.barycentric import Barycentric
+from torch.utils.checkpoint import checkpoint
 
 
 class NodesForce:
@@ -26,10 +28,11 @@ class NodesPositionAndVelocity:
         self._dt = dt
 
     def update(self):
-        self._nodes.position, self._nodes.velocity = UpdateState.apply(
-            self._nodes.force,
+        args = (self._nodes.force,
             self._nodes.position,
             self._nodes.velocity,
             self._model,
             self._dt,
         )
+        self._nodes.position, self._nodes.velocity = UpdateState.apply(*args)
+            
