@@ -7,112 +7,56 @@ from torch.utils.checkpoint import checkpoint
 sys.path.append("src")
 from mesh.mesh import Mesh
 from cable.cable import Cable
+from cable.holes import Holes
 from simulation.update_holes import HolesForce, HolesPositionAndVelocity
 from simulation.update_nodes import NodesForce, NodesPositionAndVelocity
+from simulation.simulation_properties import SimulationProperties
 from cable.barycentric_factory import BarycentricFactory
 from warp_wrapper.model_factory import ModelFactory
-from warp_wrapper.state_iterable import StateIterable
-from point.point_iterable import PointIterable
-import warp as wp
 
-import gc
 
-def count_tensors():
-    count = 0
-    for obj in gc.get_objects():
-        if isinstance(obj, torch.Tensor):
-            count += 1
-    return count
-
-class Simulation:
+class Simulation(torch.nn.Module):
     def __init__(
         self,
         gripper_mesh: Mesh,
         cables: List[Cable],
-        duration: float,
-        dt: float,
+        holes: List[Holes],
+        properties: SimulationProperties,
         object_mesh: Mesh = None,
-        device: str = "cuda",
-        segment_duration: float = 0.5
     ):
+        super(Simulation, self).__init__()
         self._mesh = gripper_mesh
         self._cables = cables
-        self._num_segments = int(duration / segment_duration)
-        self._segment_steps = int(segment_duration / dt)
-        self._dt = dt
-        self._device = device
-        self._barycentrics = [BarycentricFactory(gripper_mesh, cable.holes, device).create() for cable in self._cables]
+        self._properties = properties
+        self._num_segments = int(properties.duration / properties.segment_duration)
+        self._segment_steps = int(properties.segment_duration / properties.dt)
+        self._barycentrics = [BarycentricFactory(gripper_mesh, hole, properties.device).create() for hole in holes]
         self._object_mesh = object_mesh
-        self._model = ModelFactory(soft_mesh=gripper_mesh, shape_mesh=object_mesh, device=device).create()
-        # self._nodes_iterable = PointIterable(gripper_mesh.nodes, num=self._segment_steps)
+        self._model = ModelFactory(soft_mesh=gripper_mesh, shape_mesh=object_mesh, device=properties.device).create()
         self.free_memory = []
+        self._holes_position_and_velocity = HolesPositionAndVelocity(barycentrics=self._barycentrics)
+        self._holes_force = HolesForce(cables=self._cables, device=properties.device)
+        self._nodes_force = NodesForce(barycentrics=self._barycentrics)
+        self._nodes_position_and_velocity = NodesPositionAndVelocity(model=self._model, dt=properties.dt)
 
-    def run(self, use_checkpoint: bool = True):
-        for _ in tqdm.tqdm(range(self._num_segments), desc="Simulation", colour="green", leave=False):
+    def forward(self, np, nv):
+        def segment(np, nv, num_steps):
+            for _ in tqdm.tqdm(range(num_steps), desc="Segment", leave=False):
+                np, nv = self.step(np, nv)
+            return np, nv
+
+        self._append_free_memory()
+        for _ in tqdm.tqdm(range(self._num_segments), "Simulation", colour="green"):
+            np, nv = checkpoint(segment, np, nv, self._segment_steps)
             self._append_free_memory()
-            if use_checkpoint:
-                checkpoint(self._update_segment, use_reentrant=False)
-            else:
-                self._update_segment()
-            # self.bind_states_between_segments()
-            self._append_free_memory()
+
+        return np, nv
+
+    def step(self, np, nv):
+        hp, hv = self._holes_position_and_velocity(np, nv)
+        hf = self._holes_force(hp, hv)
+        nf = self._nodes_force(hf)
+        return self._nodes_position_and_velocity(nf, np, nv)
 
     def _append_free_memory(self):
         self.free_memory.append(torch.cuda.mem_get_info()[0] / (1024 * 1024 * 1024))
-
-    def _update_segment(self):
-        self._state_iterable = StateIterable(self._model, num=self._segment_steps)
-        # self._states = [self._model.state(requires_grad=True) for _ in range(self._segment_steps+1)]
-        for i in range(self._segment_steps):
-            self._update_holes_position_and_velocity()
-            self._update_holes_force()
-            self._update_nodes_force()
-            self._update_nodes_position_and_velocity(i)
-            self._zero_forces()
-        
-
-    def _update_holes_position_and_velocity(self):
-        for c, b in zip(self._cables, self._barycentrics):
-            HolesPositionAndVelocity(holes=c.holes, nodes=self._mesh.nodes, barycentric=b).update()
-
-    def _update_holes_force(self):
-        for c in self._cables:
-            HolesForce(cable=c, device=self._device).update()
-
-    def _update_nodes_force(self):
-        for c, b in zip(self._cables, self._barycentrics):
-            NodesForce(nodes=self._mesh.nodes, holes=c.holes, barycentric=b).update()
-
-    def _update_nodes_position_and_velocity(self, i):
-        NodesPositionAndVelocity(nodes=self._mesh.nodes, model=self._model, dt=self._dt).update()
-
-    def _zero_forces(self):
-        self._mesh.nodes.force = torch.zeros_like(self._mesh.nodes.force)
-        for cable in self._cables:
-            cable.holes.force = torch.zeros_like(cable.holes.force)
-
-    def bind_states_between_segments(self):
-        for state in self._states:
-            wp.launch(
-                kernel=self.set_state_kernel,
-                dim=len(state.particle_q),
-                inputs=[self._states[-1].particle_q, self._states[-1].particle_qd],
-                outputs=[state.particle_q, state.particle_qd],
-                device=self._device,
-            )
-
-    @wp.kernel
-    def set_state_kernel(
-        target_state_q: wp.array(dtype=wp.vec3),
-        target_state_qd: wp.array(dtype=wp.vec3),
-        current_state_q: wp.array(dtype=wp.vec3),
-        current_state_qd: wp.array(dtype=wp.vec3),
-    ):
-        i = wp.tid()
-        current_state_q[i] = target_state_q[i]
-        current_state_qd[i] = target_state_qd[i]
-
-    def reset_states(self):
-        self._states.clear()
-        for _ in range(self._segment_steps+1):
-            self._states.append(self._model.state(requires_grad=True))
