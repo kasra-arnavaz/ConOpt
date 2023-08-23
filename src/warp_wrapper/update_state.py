@@ -1,10 +1,9 @@
 import torch
-from warp.sim import Model, State
+from warp.sim import Model
 import warp as wp
 import sys
 
 sys.path.append("src")
-from warp_wrapper.state_iterable import StateIterable
 
 wp.init()
 
@@ -28,8 +27,8 @@ class UpdateState(torch.autograd.Function):
             ctx.state_now.clear_forces()
             ctx.state_now.particle_f = ctx.force
             wp.sim.SemiImplicitIntegrator().simulate(model, ctx.state_now, ctx.state_next, dt)
-        position_next = wp.to_torch(ctx.state_next.particle_q).requires_grad_()
-        velocity_next = wp.to_torch(ctx.state_next.particle_qd).requires_grad_()
+        position_next = wp.to_torch(ctx.state_next.particle_q)
+        velocity_next = wp.to_torch(ctx.state_next.particle_qd)
         return position_next, velocity_next
 
     @staticmethod
@@ -37,13 +36,10 @@ class UpdateState(torch.autograd.Function):
         ctx.state_next.particle_q.grad = wp.from_torch(grad_position_next.contiguous(), dtype=wp.vec3)
         ctx.state_next.particle_qd.grad = wp.from_torch(grad_velocity_next.contiguous(), dtype=wp.vec3)
         ctx.tape.backward()
-
         return (
-            wp.to_torch(ctx.tape.gradients[ctx.force]).requires_grad_(),
-            wp.to_torch(ctx.tape.gradients[ctx.state_now.particle_q]).requires_grad_(),
-            wp.to_torch(ctx.tape.gradients[ctx.state_now.particle_qd]).requires_grad_(),
+            wp.to_torch(ctx.tape.gradients[ctx.force]),
+            wp.to_torch(ctx.tape.gradients[ctx.state_now.particle_q]),
+            wp.to_torch(ctx.tape.gradients[ctx.state_now.particle_qd]),
             None,
             None,
-            None,
-            None
         )
