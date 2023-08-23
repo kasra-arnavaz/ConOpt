@@ -13,8 +13,8 @@ class UpdateState(torch.autograd.Function):
     def forward(
         ctx,
         force: torch.Tensor,
-        position_now: torch.Tensor,
-        velocity_now: torch.Tensor,
+        position_now: torch.Tensor,  # as a substitue to model.state.particle_q
+        velocity_now: torch.Tensor,  # as a substitue to model.state.particle_qd
         model: Model,
         dt: float,
     ):
