@@ -1,4 +1,4 @@
-name: cat
+name: DesOpt
 channels:
   - pytorch3d
   - iopath
