@@ -12,31 +12,24 @@ from torch.utils.checkpoint import checkpoint
 
 
 class NodesForce:
-    def __init__(self, nodes: Nodes, holes: Holes, barycentric: Barycentric):
-        self._nodes = nodes
-        self._holes = holes
+    def __init__(self, barycentric: Barycentric):
         self._barycentric = barycentric
 
-    def update(self):
-        self._nodes.force = self._nodes.force + self._barycentric.NxH @ self._holes.force
+    def __call__(self, holes_force):
+        return self._barycentric.NxH @ holes_force
 
 
 class NodesPositionAndVelocity:
-    def __init__(self, nodes: Nodes, model: Model, dt: float, state_now, state_next):
-        self._nodes = nodes
+    def __init__(self, model: Model, dt: float):
         self._model = model
         self._dt = dt
-        self.state_now = state_now
-        self.state_next = state_next
 
-    def update(self):
-        args = (self._nodes.force,
-            self._nodes.position,
-            self._nodes.velocity,
+    def __call__(self, nodes_force, nodes_position, nodes_velocity):
+        args = (nodes_force,
+            nodes_position,
+            nodes_velocity,
             self._model,
-            self.state_now,
-            self.state_next,
             self._dt,
         )
-        self._nodes.position, self._nodes.velocity = UpdateState.apply(*args)
+        return UpdateState.apply(*args)
             

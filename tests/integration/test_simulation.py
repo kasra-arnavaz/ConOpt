@@ -5,7 +5,7 @@ torch.manual_seed(0)
 
 sys.path.append("src")
 from pathlib import Path
-from simulation.simulation import Simulation
+from simulation.sim_module import Simulation
 from mesh.mesh_factory import MeshFactoryFromScad, MeshFactoryFromObj
 from mesh.scad import Scad
 from cable.cable_factory import CableFactory
@@ -55,12 +55,12 @@ class TestSimulationWithCheckpoint(unittest.TestCase):
             gripper_mesh=cls.gripper_mesh,
             object_mesh=object_mesh,
             cables=cables,
-            duration=0.5,
+            duration=1.5,
             dt=2.1701388888888886e-05,
             device="cuda",
-            segment_duration=0.1
+            segment_duration=0.5
         )
-        cls.simulation.run(use_checkpoint=True)
+        cls.gripper_mesh.nodes.position, cls.gripper_mesh.nodes.velocity = cls.simulation(cls.gripper_mesh.nodes.position, cls.gripper_mesh.nodes.velocity)
 
     def tests_if_simulation_releases_memory_after_each_segment_when_use_checkpoint_is_true(self):
         memory = self.simulation.free_memory

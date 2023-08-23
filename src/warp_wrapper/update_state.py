@@ -17,12 +17,10 @@ class UpdateState(torch.autograd.Function):
         position_now: torch.Tensor,
         velocity_now: torch.Tensor,
         model: Model,
-        state_now: State,
-        state_next: State,
         dt: float,
     ):
-        ctx.state_now = state_now
-        ctx.state_next = state_next
+        ctx.state_now = model.state(requires_grad=True)
+        ctx.state_next = model.state(requires_grad=True)
         ctx.tape = wp.Tape()
         ctx.force = wp.from_torch(force.contiguous(), dtype=wp.vec3)
         with ctx.tape:

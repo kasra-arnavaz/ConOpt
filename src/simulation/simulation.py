@@ -84,7 +84,7 @@ class Simulation:
             NodesForce(nodes=self._mesh.nodes, holes=c.holes, barycentric=b).update()
 
     def _update_nodes_position_and_velocity(self, i):
-        NodesPositionAndVelocity(nodes=self._mesh.nodes, model=self._model, dt=self._dt, state_now=next(self._state_iterable), state_next=next(self._state_iterable)).update()
+        NodesPositionAndVelocity(nodes=self._mesh.nodes, model=self._model, dt=self._dt).update()
 
     def _zero_forces(self):
         self._mesh.nodes.force = torch.zeros_like(self._mesh.nodes.force)
