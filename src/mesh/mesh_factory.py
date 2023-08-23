@@ -22,7 +22,7 @@ class MeshFactory(ABC):
 
 class _MeshFactoryTriangles(MeshFactory):
     def create(self):
-        nodes = Nodes(position=self._get_position().requires_grad_())
+        nodes = Nodes(position=self._get_position())
         elements = Elements(triangles=self._get_triangles())
         return Mesh(nodes, elements)
 
@@ -46,7 +46,7 @@ class MeshFactoryFromStl(_MeshFactoryTriangles):
 
 class MeshFactoryFromMsh(MeshFactory):
     def create(self):
-        nodes = Nodes(position=self._get_position().requires_grad_())
+        nodes = Nodes(position=self._get_position())
         elements = Elements(tetrahedra=self._get_tetrahedra())
         return Mesh(nodes, elements)
 
@@ -71,7 +71,7 @@ class MeshFactoryFromScad(MeshFactory):
     def create(self):
         self._create_files()
         msh_factory = MeshFactoryFromMsh(file=self._get_msh_file(), device=self._device)
-        position = msh_factory._get_position().requires_grad_()
+        position = msh_factory._get_position()
         tetrahedra = msh_factory._get_tetrahedra()
         nodes = Nodes(position=position)
         elements = Elements(tetrahedra=tetrahedra)
@@ -96,25 +96,3 @@ class MeshFactoryFromScad(MeshFactory):
 
     def _get_stl_file(self):
         return self.PATH / "mesh.stl"
-
-
-class MeshFactoryFromTet(MeshFactory):
-    def create(self):
-        nodes = Nodes(position=self._get_position())
-        elements = Elements(tetrahedra=self._get_tetrahedra())
-        return Mesh(nodes, elements)
-
-    def _get_position(self):
-        lines = self._get_lines()
-        nodes = [list(map(float, line[1:])) for line in lines if line[0] == "v"]
-        return torch.tensor(nodes, dtype=torch.float32, device=self._device)
-
-    def _get_tetrahedra(self):
-        lines = self._get_lines()
-        elements = [list(map(int, line[1:])) for line in lines if line[0] == "t"]
-        return torch.tensor(elements, dtype=torch.int32, device=self._device)
-
-    def _get_lines(self) -> list:
-        with open(self._file) as f:
-            lines = f.readlines()
-        return [line.split(" ") for line in lines]
