@@ -1,6 +1,7 @@
 import torch
 import unittest
 import sys
+torch.manual_seed(0)
 
 sys.path.append("src")
 from pathlib import Path
@@ -57,7 +58,7 @@ class TestSimulationWithCheckpoint(unittest.TestCase):
             duration=0.5,
             dt=2.1701388888888886e-05,
             device="cuda",
-            segment_duration=0.5
+            segment_duration=0.1
         )
         cls.simulation.run(use_checkpoint=True)
 

@@ -1,5 +1,5 @@
 import torch
-from warp.sim import Model
+from warp.sim import Model, State
 import warp as wp
 import sys
 
@@ -17,10 +17,12 @@ class UpdateState(torch.autograd.Function):
         position_now: torch.Tensor,
         velocity_now: torch.Tensor,
         model: Model,
+        state_now: State,
+        state_next: State,
         dt: float,
     ):
-        ctx.state_now = model.state(requires_grad=True)
-        ctx.state_next = model.state(requires_grad=True)
+        ctx.state_now = state_now
+        ctx.state_next = state_next
         ctx.tape = wp.Tape()
         ctx.force = wp.from_torch(force.contiguous(), dtype=wp.vec3)
         with ctx.tape:
@@ -28,8 +30,6 @@ class UpdateState(torch.autograd.Function):
             ctx.state_now.clear_forces()
             ctx.state_now.particle_f = ctx.force
             wp.sim.SemiImplicitIntegrator().simulate(model, ctx.state_now, ctx.state_next, dt)
-        model.particle_q = ctx.state_next.particle_q
-        model.particle_qd = ctx.state_next.particle_qd
         position_next = wp.to_torch(ctx.state_next.particle_q).requires_grad_()
         velocity_next = wp.to_torch(ctx.state_next.particle_qd).requires_grad_()
         return position_next, velocity_next
@@ -46,4 +46,6 @@ class UpdateState(torch.autograd.Function):
             wp.to_torch(ctx.tape.gradients[ctx.state_now.particle_qd]).requires_grad_(),
             None,
             None,
+            None,
+            None
         )

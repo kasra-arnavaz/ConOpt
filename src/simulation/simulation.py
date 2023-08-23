@@ -13,6 +13,7 @@ from cable.barycentric_factory import BarycentricFactory
 from warp_wrapper.model_factory import ModelFactory
 from warp_wrapper.state_iterable import StateIterable
 from point.point_iterable import PointIterable
+import warp as wp
 
 import gc
 
@@ -43,7 +44,6 @@ class Simulation:
         self._barycentrics = [BarycentricFactory(gripper_mesh, cable.holes, device).create() for cable in self._cables]
         self._object_mesh = object_mesh
         self._model = ModelFactory(soft_mesh=gripper_mesh, shape_mesh=object_mesh, device=device).create()
-        # self._state_iterable = StateIterable(self._model, num=self._segment_steps)
         # self._nodes_iterable = PointIterable(gripper_mesh.nodes, num=self._segment_steps)
         self.free_memory = []
 
@@ -54,19 +54,22 @@ class Simulation:
                 checkpoint(self._update_segment, use_reentrant=False)
             else:
                 self._update_segment()
+            # self.bind_states_between_segments()
             self._append_free_memory()
 
     def _append_free_memory(self):
         self.free_memory.append(torch.cuda.mem_get_info()[0] / (1024 * 1024 * 1024))
 
     def _update_segment(self):
-        # self._segment_steps = 2
-        for _ in range(self._segment_steps):
+        self._state_iterable = StateIterable(self._model, num=self._segment_steps)
+        # self._states = [self._model.state(requires_grad=True) for _ in range(self._segment_steps+1)]
+        for i in range(self._segment_steps):
             self._update_holes_position_and_velocity()
             self._update_holes_force()
             self._update_nodes_force()
-            self._update_nodes_position_and_velocity()
+            self._update_nodes_position_and_velocity(i)
             self._zero_forces()
+        
 
     def _update_holes_position_and_velocity(self):
         for c, b in zip(self._cables, self._barycentrics):
@@ -80,10 +83,36 @@ class Simulation:
         for c, b in zip(self._cables, self._barycentrics):
             NodesForce(nodes=self._mesh.nodes, holes=c.holes, barycentric=b).update()
 
-    def _update_nodes_position_and_velocity(self):
-        NodesPositionAndVelocity(nodes=self._mesh.nodes, model=self._model, dt=self._dt).update()
+    def _update_nodes_position_and_velocity(self, i):
+        NodesPositionAndVelocity(nodes=self._mesh.nodes, model=self._model, dt=self._dt, state_now=next(self._state_iterable), state_next=next(self._state_iterable)).update()
 
     def _zero_forces(self):
         self._mesh.nodes.force = torch.zeros_like(self._mesh.nodes.force)
         for cable in self._cables:
             cable.holes.force = torch.zeros_like(cable.holes.force)
+
+    def bind_states_between_segments(self):
+        for state in self._states:
+            wp.launch(
+                kernel=self.set_state_kernel,
+                dim=len(state.particle_q),
+                inputs=[self._states[-1].particle_q, self._states[-1].particle_qd],
+                outputs=[state.particle_q, state.particle_qd],
+                device=self._device,
+            )
+
+    @wp.kernel
+    def set_state_kernel(
+        target_state_q: wp.array(dtype=wp.vec3),
+        target_state_qd: wp.array(dtype=wp.vec3),
+        current_state_q: wp.array(dtype=wp.vec3),
+        current_state_qd: wp.array(dtype=wp.vec3),
+    ):
+        i = wp.tid()
+        current_state_q[i] = target_state_q[i]
+        current_state_qd[i] = target_state_qd[i]
+
+    def reset_states(self):
+        self._states.clear()
+        for _ in range(self._segment_steps+1):
+            self._states.append(self._model.state(requires_grad=True))

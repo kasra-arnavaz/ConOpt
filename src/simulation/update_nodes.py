@@ -22,16 +22,20 @@ class NodesForce:
 
 
 class NodesPositionAndVelocity:
-    def __init__(self, nodes: Nodes, model: Model, dt: float):
+    def __init__(self, nodes: Nodes, model: Model, dt: float, state_now, state_next):
         self._nodes = nodes
         self._model = model
         self._dt = dt
+        self.state_now = state_now
+        self.state_next = state_next
 
     def update(self):
         args = (self._nodes.force,
             self._nodes.position,
             self._nodes.velocity,
             self._model,
+            self.state_now,
+            self.state_next,
             self._dt,
         )
         self._nodes.position, self._nodes.velocity = UpdateState.apply(*args)
