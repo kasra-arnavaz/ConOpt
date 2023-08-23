@@ -4,18 +4,15 @@ from cable.cable import Cable
 from cable.holes import Holes
 
 
-class CableFactory:
-    def __init__(
-        self, stiffness: float, damping: float, pull_ratio: List[torch.Tensor], holes: List[Holes], device: str = "cuda"
-    ):
+class MultiCableFactory:
+    def __init__(self, holes: List[Holes], pull_ratio: List[torch.Tensor], stiffness: float, damping: float):
+        self._holes = holes
+        self._pull_ratio = pull_ratio
         self._stiffness = stiffness
         self._damping = damping
-        self._pull_ratio = pull_ratio
-        self._holes = holes
-        self._device = device
 
     def create(self) -> List[Cable]:
         return [
-            Cable(holes, pull_ratio, self._stiffness, self._damping)
-            for holes, pull_ratio in zip(self._holes, self._pull_ratio)
+            Cable(holes=h, pull_ratio=pr, stiffness=self._stiffness, damping=self._damping)
+            for pr, h in zip(self._pull_ratio, self._holes)
         ]
