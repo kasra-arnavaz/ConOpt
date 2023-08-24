@@ -5,14 +5,14 @@ import torch
 
 sys.path.append("src")
 
-from cable.barycentric_factory import BarycentricFactory
+from cable.barycentric_factory import BarycentricListFactory
 from mesh.mesh_factory import MeshFactoryFromScad
-from cable.holes_factory import HolesFactoryFromListOfPositions
+from cable.holes_factory import HolesListFactory
 from cable.holes_initial_position import HolesInitialPosition
 from mesh.scad import Scad
 
 
-class TestBarycentricFactory(unittest.TestCase):
+class TestListBarycentricFactory(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         file = Path("tests/data/caterpillar.scad")
@@ -20,23 +20,22 @@ class TestBarycentricFactory(unittest.TestCase):
         scad = Scad(file, parameters)
         holes_positions = HolesInitialPosition(scad).get()
         cls.mesh = MeshFactoryFromScad(scad).create()
-        cls.holes = HolesFactoryFromListOfPositions(holes_positions).create()
+        cls.holes = HolesListFactory(holes_positions).create()
 
     def tests_if_error_is_raised_creating_barycentric(self):
-        for holes in self.holes:
-            try:
-                BarycentricFactory(mesh=self.mesh, holes=holes).create()
-            except:
-                self.fail()
+        try:
+            BarycentricListFactory(mesh=self.mesh, holes=self.holes).create()
+        except:
+            self.fail()
 
     def tests_if_HxN_has_the_correct_shape(self):
-        for holes in self.holes:
-            barycentric = BarycentricFactory(mesh=self.mesh, holes=holes).create()
+        barycentrics = BarycentricListFactory(mesh=self.mesh, holes=self.holes).create()
+        for barycentric, holes in zip(barycentrics, self.holes):
             self.assertEqual(list(barycentric.HxN.shape), [len(holes), len(self.mesh.nodes)])
 
     def tests_if_NxH_has_the_correct_shape(self):
-        for holes in self.holes:
-            barycentric = BarycentricFactory(mesh=self.mesh, holes=holes).create()
+        barycentrics = BarycentricListFactory(mesh=self.mesh, holes=self.holes).create()
+        for barycentric, holes in zip(barycentrics, self.holes):
             self.assertEqual(list(barycentric.NxH.shape), [len(self.mesh.nodes), len(holes)])
 
 

@@ -9,8 +9,7 @@ from simulation.scene import Scene
 from simulation.update_holes import HolesForce, HolesPositionAndVelocity
 from simulation.update_nodes import NodesForce, NodesPositionAndVelocity
 from simulation.simulation_properties import SimulationProperties
-from cable.barycentric_factory import MultiBarycentricFactory
-from warp_wrapper.model_factory import ModelFactory
+from cable.barycentric_factory import BarycentricListFactory
 
 
 class Simulation(torch.nn.Module):
@@ -18,7 +17,8 @@ class Simulation(torch.nn.Module):
         super().__init__()
         self.free_memory = []
         self._properties = properties
-        self._barycentrics = MultiBarycentricFactory(scene.gripper, scene.gripper.cables, properties.device).create()
+        holes = [cable.holes for cable in scene.gripper.cables]
+        self._barycentrics = BarycentricListFactory(scene.gripper, holes, properties.device).create()
         # functions
         self._holes_position_and_velocity = HolesPositionAndVelocity(barycentrics=self._barycentrics)
         self._holes_force = HolesForce(cables=scene.gripper.cables, device=properties.device)
@@ -27,12 +27,14 @@ class Simulation(torch.nn.Module):
 
     def forward(self, np, nv):
         def segment(np, nv, num_steps):
-            for _ in tqdm.tqdm(range(num_steps), desc="Segment", leave=False):
+            for _ in range(num_steps):
                 np, nv = self.step(np, nv)
             return np, nv
 
         self._append_free_memory()
         for _ in tqdm.tqdm(range(self._properties.num_segments), "Simulation", colour="green"):
+            np.requires_grad_()
+            nv.requires_grad_()
             np, nv = checkpoint(segment, np, nv, self._properties.num_steps_per_segment)
             self._append_free_memory()
 

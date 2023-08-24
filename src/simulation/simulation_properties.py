@@ -1,4 +1,5 @@
 from attrs import define, field
+from decimal import Decimal
 
 
 @define
@@ -24,4 +25,4 @@ class SimulationProperties:
             raise ValueError(f"Expected <{attribute.name}> to be a multiplier of <duration>.")
 
     def _segment_duration_not_a_multiplier_of_duration(self):
-        return self.duration % self.segment_duration != 0
+        return Decimal(str(self.duration)) % Decimal(str(self.segment_duration)) != 0.0

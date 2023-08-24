@@ -29,6 +29,7 @@ class TestVariables(unittest.TestCase):
         variables.add_parameter(p)
         loss = (p**2).sum()
         loss.backward()
+        variables.set_gradients()
         self.assertTrue(torch.equal(variables.gradients[0], 2 * p))
 
 

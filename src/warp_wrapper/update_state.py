@@ -27,6 +27,8 @@ class UpdateState(torch.autograd.Function):
             ctx.state_now.clear_forces()
             ctx.state_now.particle_f = ctx.force
             wp.sim.SemiImplicitIntegrator().simulate(model, ctx.state_now, ctx.state_next, dt)
+        model.particle_q = ctx.state_next.particle_q
+        model.particle_qd = ctx.state_next.particle_qd
         position_next = wp.to_torch(ctx.state_next.particle_q)
         velocity_next = wp.to_torch(ctx.state_next.particle_qd)
         return position_next, velocity_next

@@ -1,5 +1,5 @@
 import sys
-from typing import List
+from typing import List, Tuple
 import torch
 
 sys.path.append("src")
@@ -13,10 +13,11 @@ class NodesForce:
     def __init__(self, barycentrics: List[Barycentric]):
         self._barycentrics = barycentrics
 
-    def __call__(self, holes_forces):
+    def __call__(self, holes_forces: List[torch.Tensor]) -> torch.Tensor:
         nodes_forces = []
         for barycentric, holes_force in zip(self._barycentrics, holes_forces):
-            nodes_forces.append(barycentric.NxH @ holes_force)
+            x = barycentric.NxH @ holes_force
+            nodes_forces.append(x)
         return torch.stack(nodes_forces).sum(dim=0)
 
 
@@ -25,7 +26,9 @@ class NodesPositionAndVelocity:
         self._model = model
         self._dt = dt
 
-    def __call__(self, nodes_force, nodes_position, nodes_velocity):
+    def __call__(
+        self, nodes_force: torch.Tensor, nodes_position: torch.Tensor, nodes_velocity: torch.Tensor
+    ) -> Tuple[torch.Tensor]:
         args = (
             nodes_force,
             nodes_position,

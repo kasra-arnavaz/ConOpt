@@ -2,22 +2,21 @@ import warp as wp
 import torch
 from typing import List
 from mesh.mesh import Mesh
-from cable.cable import Cable
 from cable.holes import Holes
 from warp_wrapper.geometry import point_is_in_tetrahedron, barycentric_coordinates
 from cable.barycentric import Barycentric
 
 
-class MultiBarycentricFactory:
-    def __init__(self, mesh: Mesh, cables: List[Cable], device: str = "cuda"):
+class BarycentricListFactory:
+    def __init__(self, mesh: Mesh, holes: List[Holes], device: str = "cuda"):
         self._mesh = mesh
-        self._cables = cables
+        self._holes = holes
         self._device = device
 
     def create(self) -> List[Barycentric]:
         barycentrics = []
-        for cable in self._cables:
-            barycentric = BarycentricFactory(mesh=self._mesh, holes=cable.holes, device=self._device).create()
+        for holes in self._holes:
+            barycentric = BarycentricFactory(mesh=self._mesh, holes=holes, device=self._device).create()
             barycentrics.append(barycentric)
         return barycentrics
 

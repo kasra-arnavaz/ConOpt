@@ -8,8 +8,8 @@ from mesh.mesh_factory import MeshFactoryFromScad, MeshFactoryFromObj
 from mesh.scad import Scad
 from mesh.mesh_properties import MeshProperties
 from simulation.simulation import Simulation
-from cable.cable_factory import CableFactory
-from cable.holes_factory import HolesFactoryFromListOfPositions
+from cable.cable_factory import CableListFactory
+from cable.holes_factory import HolesListFactory
 from cable.holes_initial_position import HolesInitialPosition
 from point.transform import Transform, get_quaternion
 from rendering.views import ThreeInteriorViews
@@ -60,7 +60,7 @@ class TestMaxGripLoss:
         transform_object = Transform(translation=[60, -60, -20], scale=[0.0015, 0.0015, 0.01], device=DEVICE)
 
         holes_position = HolesInitialPosition(scad).get()
-        holes = HolesFactoryFromListOfPositions(holes_position, device=DEVICE).create()
+        holes = HolesListFactory(holes_position, device=DEVICE).create()
 
         transform_gripper.apply(gripper_mesh.nodes)
         transform_object.apply(object_mesh.nodes)
@@ -74,7 +74,7 @@ class TestMaxGripLoss:
         variables = Variables()
         for p in pull_ratio:
             variables.add_parameter(p)
-        cables = CableFactory(stiffness=100, damping=0.01, pull_ratio=pull_ratio, holes=holes).create()
+        cables = CableListFactory(stiffness=100, damping=0.01, pull_ratio=pull_ratio, holes=holes).create()
         simulation = Simulation(
             gripper_mesh=gripper_mesh,
             object_mesh=object_mesh,

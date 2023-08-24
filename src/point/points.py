@@ -14,7 +14,7 @@ class Points:
     @velocity.default
     @force.default
     def _set_zero_by_default(self):
-        return torch.zeros_like(self.position, requires_grad=True)
+        return torch.zeros_like(self.position)
 
     @position.validator
     def _validate_position(self, attribute, value):

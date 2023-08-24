@@ -3,7 +3,7 @@ from typing import List
 from cable.holes import Holes
 
 
-class MultiHolesFactory:
+class HolesListFactory:
     def __init__(self, list_of_positions: List[torch.Tensor], device: str = "cuda"):
         self._list_of_positions = list_of_positions
         self._device = device
