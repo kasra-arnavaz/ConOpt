@@ -10,7 +10,6 @@ from mesh.mesh_properties import MeshProperties
 class Mesh:
     nodes: Nodes = field()
     elements: Elements = field()
-    cables: List[Cable] = field(default=None)
     properties: MeshProperties = field(default=None)
 
     @elements.validator

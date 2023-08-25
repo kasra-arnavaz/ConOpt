@@ -14,6 +14,7 @@ from point.transform import Transform, get_quaternion
 from mesh.mesh_properties import MeshProperties
 from simulation.simulation_properties import SimulationProperties
 from simulation.scene import Scene
+from simulation.update_scene import update_scene
 
 
 class TestSimulation(unittest.TestCase):
@@ -60,13 +61,10 @@ class TestSimulation(unittest.TestCase):
         )
         scene = Scene(gripper=cls.gripper_mesh, object=object_mesh, device="cuda")
         cls.simulation = Simulation(scene=scene, properties=sim_properties)
-        cls.gripper_mesh.nodes.position, cls.gripper_mesh.nodes.velocity = cls.simulation(
-            cls.gripper_mesh.nodes.position, cls.gripper_mesh.nodes.velocity
-        )
+        update_scene(cls.simulation)
 
     def tests_if_simulation_releases_memory_after_each_segment(self):
         memory = self.simulation.free_memory
-        print(memory)
         self.assertTrue(max(memory) - min(memory) <= 0.1)
 
     def tests_if_a_gradients_of_pull_ratio_are_not_none_given_a_loss(self):

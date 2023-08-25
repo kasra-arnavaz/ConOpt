@@ -5,6 +5,7 @@ import sys
 sys.path.append("src")
 
 from rendering.rendering import InteriorGapRendering
+from simulation.scene import Scene
 
 
 class Loss(ABC):
@@ -14,6 +15,14 @@ class Loss(ABC):
 
     def backward(self):
         self.get_loss().backward()
+
+
+class ToyLoss(Loss):
+    def __init__(self, scene: Scene):
+        self._scene = scene
+
+    def get_loss(self):
+        return self._scene.gripper.nodes.position.sum()
 
 
 class MaxGripLoss(Loss):
