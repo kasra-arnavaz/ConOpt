@@ -11,7 +11,7 @@ class Optimizer(ABC):
 
     def zero_grad(self):
         for grad in self._variables.gradients:
-            grad = torch.zeros_like(grad)
+            grad.zero_()
 
     @abstractmethod
     def step(self):

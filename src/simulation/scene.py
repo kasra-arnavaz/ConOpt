@@ -10,6 +10,9 @@ from cable.holes import Holes
 from warp.sim import Model
 from warp_wrapper.model_factory import ModelFactory
 import copy
+import warp as wp
+
+wp.init()
 
 
 @define(slots=False)
@@ -25,12 +28,10 @@ class Scene:
 
     def __attrs_post_init__(self):
         self._initial_gripper = copy.deepcopy(self.gripper)
-        self._initial_object = copy.deepcopy(self.object)
-        self._initial_model = copy.deepcopy(self.model)
-        self._initial_device = self.device
+        self._initial_partilce_q = wp.clone(self.model.particle_q)
+        self._initial_partilce_qd = wp.clone(self.model.particle_qd)
 
     def reset(self):
-        self.gripper = self._initial_gripper
-        self.object = self._initial_object
-        self.model = self._initial_model
-        self.device = self._initial_device
+        self.gripper = copy.deepcopy(self._initial_gripper)
+        self.model.particle_q = self._initial_partilce_q
+        self.model.particle_qd = self._initial_partilce_qd

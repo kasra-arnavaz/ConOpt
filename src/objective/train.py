@@ -36,7 +36,7 @@ class Train:
             self._loss.backward()
             self._optimizer.step()
             self.print(i)
-            # self._optimizer.zero_grad()
+            self._optimizer.zero_grad()
             # Visualization(self._vis_rendering).show_images()
             self._simulation.scene.reset()
 
