@@ -28,7 +28,8 @@ from simulation.simulation_properties import SimulationProperties
 
 
 class TestMaxGripLoss(unittest.TestCase):
-    def __init__(cls):
+    @classmethod
+    def setUpClass(cls):
         DEVICE = "cuda"
         file = Path("tests/data/caterpillar.scad")
         parameters = Path("tests/data/caterpillar_scad_params.json")
@@ -79,27 +80,26 @@ class TestMaxGripLoss(unittest.TestCase):
             variables.add_parameter(cable.pull_ratio)
         scene = Scene(gripper=gripper_mesh, object=object_mesh, device=DEVICE)
         sim_properties = SimulationProperties(
-            duration=0.02, segment_duration=0.01, dt=2.1701388888888886e-05, device="cuda"
+            duration=0.01, segment_duration=0.01, dt=2.1701388888888886e-05, device="cuda"
         )
         simulation = Simulation(scene=scene, properties=sim_properties, cables=cables)
         views = ThreeInteriorViews(center=object_mesh.nodes.position.mean(dim=0), device=DEVICE)
         rendering = InteriorGapRendering(
-            gripper_mesh=gripper_mesh,
-            object_mesh=object_mesh,
+            scene=scene,
             views=views,
             device=DEVICE,
         )
-        # loss = MaxGripLoss(rendering=rendering, device=DEVICE)
-        loss = ToyLoss(scene)
-        optimizer = GradientDescent(loss, variables, learning_rate=1e-4)
-        cls.train = Train(simulation, loss, optimizer, num_iters=100).run(verbose=False)
+        loss = MaxGripLoss(rendering=rendering, device=DEVICE)
+        # loss = ToyLoss(scene)
+        optimizer = GradientDescent(loss, variables, learning_rate=1e-2)
+        cls.train = Train(simulation, loss, optimizer, num_iters=3)
 
     def tests_if_train_runs(self):
         try:
-            self.train.run()
+            self.train.run(verbose=True)
         except:
             self.fail()
 
 
 if __name__ == "__main__":
-    TestMaxGripLoss()
+    unittest.main()

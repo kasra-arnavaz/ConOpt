@@ -7,11 +7,13 @@ import torch
 sys.path.append("src")
 from mesh.mesh import Mesh
 from rendering.views import Views, ExteriorViews, InteriorViews
+from functools import cached_property
+from simulation.scene import Scene
 
 
 class DepthRendering(ABC):
-    def __init__(self, meshes: List[Mesh], views: Views, device: str = "cuda"):
-        self._meshes = meshes
+    def __init__(self, scene: Scene, views: Views, device: str = "cuda"):
+        self._scene = scene
         self._device = device
         self._views = views.get()
         self._znear = 0.001
@@ -23,10 +25,15 @@ class DepthRendering(ABC):
         pass
 
     def _get_meshes(self):
-        meshes = [structures.Meshes(mesh.nodes.position[None], mesh.elements.triangles[None]) for mesh in self._meshes]
+        gripper = self._scene.gripper
+        object = self._scene.object
+        meshes = []
+        for mesh in [gripper, object]:
+            meshes.append(structures.Meshes(mesh.nodes.position[None], mesh.elements.triangles[None]))
         return structures.join_meshes_as_batch(meshes)
 
-    def _get_cameras(self):
+    @cached_property
+    def _cameras(self):
         cameras = []
         for view in self._views:
             cameras.append(
@@ -41,17 +48,19 @@ class DepthRendering(ABC):
             )
         return cameras
 
-    def _get_rasterizers(self):
+    @cached_property
+    def _rasterizers(self):
         settings = renderer.RasterizationSettings(image_size=1000, blur_radius=0.0, faces_per_pixel=1, bin_size=0)
-        return [renderer.MeshRasterizer(cameras=camera, raster_settings=settings) for camera in self._get_cameras()]
+        return [renderer.MeshRasterizer(cameras=camera, raster_settings=settings) for camera in self._cameras]
 
     def _get_zbuf(self):
-        return [rasterizer(self._get_meshes()).zbuf for rasterizer in self._get_rasterizers()]
+        meshes = self._get_meshes()
+        return [rasterizer(meshes).zbuf for rasterizer in self._rasterizers]
 
 
 class ExteriorDepthRendering(DepthRendering):
-    def __init__(self, meshes: List[Mesh], views: ExteriorViews, device: str = "cuda"):
-        super().__init__(meshes, views, device)
+    def __init__(self, scene: Scene, views: ExteriorViews, device: str = "cuda"):
+        super().__init__(scene, views, device)
 
     def get_images(self) -> List[torch.Tensor]:
         images = []
@@ -67,12 +76,11 @@ class ExteriorDepthRendering(DepthRendering):
 class InteriorDepthRendering(DepthRendering):
     def __init__(
         self,
-        gripper_mesh: Mesh,
-        object_mesh: Mesh,
+        scene: Scene,
         views: InteriorViews,
         device: str = "cuda",
     ):
-        super().__init__([gripper_mesh, object_mesh], views, device)
+        super().__init__(scene, views, device)
 
 
 class InteriorGapRendering(InteriorDepthRendering):

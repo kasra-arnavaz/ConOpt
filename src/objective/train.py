@@ -10,6 +10,7 @@ from rendering.visualization import Visualization
 from rendering.views import ThreeExteriorViews
 from rendering.rendering import ExteriorDepthRendering
 from simulation.update_scene import update_scene
+from pathlib import Path
 
 
 class Train:
@@ -19,9 +20,7 @@ class Train:
         self._optimizer = optimizer
         self._num_iters = num_iters
         views = ThreeExteriorViews(distance=0.5, device="cuda")
-        self._vis_rendering = ExteriorDepthRendering(
-            meshes=[simulation.scene.gripper, simulation.scene.object], views=views
-        )
+        self._vis_rendering = ExteriorDepthRendering(scene=simulation.scene, views=views)
 
     def run(self, verbose: bool = True):
         for i in tqdm.tqdm(
@@ -31,13 +30,13 @@ class Train:
             leave=False,
             disable=~verbose,
         ):
-            # Visualization(self._vis_rendering).show_images()
+            Visualization(self._vis_rendering).save_images(Path(f"log/before_{i}.png"))
             update_scene(self._simulation)
             self._loss.backward()
             self._optimizer.step()
             self.print(i)
             self._optimizer.zero_grad()
-            # Visualization(self._vis_rendering).show_images()
+            Visualization(self._vis_rendering).save_images(Path(f"log/after_{i}.png"))
             self._simulation.scene.reset()
 
     def print(self, iteration):
