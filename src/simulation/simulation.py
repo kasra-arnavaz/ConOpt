@@ -13,17 +13,16 @@ from cable.barycentric_factory import BarycentricListFactory
 
 
 class Simulation(torch.nn.Module):
-    def __init__(self, scene: Scene, properties: SimulationProperties, cables):
+    def __init__(self, scene: Scene, properties: SimulationProperties):
         super().__init__()
         self.scene = scene
         self.free_memory = []
         self._properties = properties
-        self.cables = cables
-        holes = [cable.holes for cable in cables]
+        holes = [cable.holes for cable in scene.gripper.cables]
         self._barycentrics = BarycentricListFactory(scene.gripper, holes, properties.device).create()
         # functions
         self._holes_position_and_velocity = HolesPositionAndVelocity(barycentrics=self._barycentrics)
-        self._holes_force = HolesForce(cables=cables, device=properties.device)
+        self._holes_force = HolesForce(cables=scene.gripper.cables, device=properties.device)
         self._nodes_force = NodesForce(barycentrics=self._barycentrics)
         self._nodes_position_and_velocity = NodesPositionAndVelocity(model=scene.model, dt=properties.dt)
 

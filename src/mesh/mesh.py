@@ -11,6 +11,7 @@ class Mesh:
     nodes: Nodes = field()
     elements: Elements = field()
     properties: MeshProperties = field(default=None)
+    cables: List[Cable] = field(default=None)
 
     @elements.validator
     def _check_max_index(self, attribute, value):

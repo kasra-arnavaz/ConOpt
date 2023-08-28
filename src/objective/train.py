@@ -19,8 +19,8 @@ class Train:
         self._loss = loss
         self._optimizer = optimizer
         self._num_iters = num_iters
-        views = ThreeExteriorViews(distance=0.5, device="cuda")
-        self._vis_rendering = ExteriorDepthRendering(scene=simulation.scene, views=views)
+        # views = ThreeExteriorViews(distance=0.5, device="cuda")
+        # self._vis_rendering = ExteriorDepthRendering(scene=simulation.scene, views=views)
 
     def run(self, verbose: bool = True):
         for i in tqdm.tqdm(
@@ -30,13 +30,13 @@ class Train:
             leave=False,
             disable=~verbose,
         ):
-            Visualization(self._vis_rendering).save_images(Path(f"log/before_{i}.png"))
+            # Visualization(self._vis_rendering).save_images(Path(f"log/before_{i}.png"))
             update_scene(self._simulation)
             self._loss.backward()
             self._optimizer.step()
             self.print(i)
             self._optimizer.zero_grad()
-            Visualization(self._vis_rendering).save_images(Path(f"log/after_{i}.png"))
+            # Visualization(self._vis_rendering).save_images(Path(f"log/after_{i}.png"))
             self._simulation.scene.reset()
 
     def print(self, iteration):

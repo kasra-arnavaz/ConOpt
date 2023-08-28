@@ -4,93 +4,83 @@ import sys
 
 sys.path.append("src")
 from pathlib import Path
-from mesh.mesh_factory import MeshFactoryFromScad, MeshFactoryFromObj
-from mesh.scad import Scad
+from simulation.scene_factory import SceneFactory
 from mesh.mesh_properties import MeshProperties
 from simulation.simulation import Simulation
-from cable.cable_factory import CableListFactory
-from cable.holes_factory import HolesListFactory
-from cable.holes_initial_position import HolesInitialPosition
 from point.transform import Transform, get_quaternion
-from rendering.views import ThreeInteriorViews
+from rendering.views import ThreeInteriorViews, ThreeExteriorViews
 from rendering.visualization import Visualization
 from rendering.rendering import (
     ExteriorDepthRendering,
     InteriorGapRendering,
     InteriorContactRendering,
 )
-from objective.loss import MaxGripLoss, ToyLoss
+from objective.loss import MaxGripLoss
 from objective.optimizer import GradientDescent, Adam
 from objective.train import Train
 from objective.variables import Variables
-from simulation.scene import Scene
 from simulation.simulation_properties import SimulationProperties
 
 
 class TestMaxGripLoss(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        DEVICE = "cuda"
-        file = Path("tests/data/caterpillar.scad")
-        parameters = Path("tests/data/caterpillar_scad_params.json")
-        scad = Scad(file, parameters)
-
-        gripper_mesh = MeshFactoryFromScad(scad, ideal_edge_length=0.02, device=DEVICE).create()
-        object_mesh = MeshFactoryFromObj(Path("tests/data/cylinder.obj"), device=DEVICE).create()
-
-        gripper_mesh.properties = MeshProperties(
+        device = "cpu"
+        # gripper
+        scad_file = Path("tests/data/caterpillar.scad")
+        scad_parameters = Path("tests/data/caterpillar_scad_params.json")
+        ideal_edge_length = 0.02
+        gripper_properties = MeshProperties(
             name="caterpillar",
             density=1080.0,
             youngs_modulus=149_000,
             poissons_ratio=0.40,
             damping_factor=0.4,
-            frozen_bounding_box=[
-                -float("inf"),
-                -0.01,
-                -float("inf"),
-                float("inf"),
-                float("inf"),
-                float("inf"),
-            ],
+            frozen_bounding_box=[-float("inf"), -0.01, -float("inf"), float("inf"), float("inf"), float("inf")],
         )
-        object_mesh.properties = MeshProperties(name="cylinder", density=1080.0)
-
-        transform_gripper = Transform(
-            rotation=get_quaternion(vector=[1, 0, 0], angle_in_degrees=90),
-            scale=[0.001, 0.001, 0.001],
-            device=DEVICE,
+        gripper_transform = Transform(
+            rotation=get_quaternion(vector=[1, 0, 0], angle_in_degrees=90), scale=[0.001, 0.001, 0.001], device=device
         )
-        transform_object = Transform(translation=[60, -60, -20], scale=[0.0015, 0.0015, 0.01], device=DEVICE)
-
-        holes_position = HolesInitialPosition(scad).get()
-        holes = HolesListFactory(holes_position, device=DEVICE).create()
-
-        transform_gripper.apply(gripper_mesh.nodes)
-        transform_object.apply(object_mesh.nodes)
-        for hole in holes:
-            transform_gripper.apply(hole)
-        pull_ratio = [
-            torch.tensor(0.0, device=DEVICE, requires_grad=True),
-            torch.tensor(0.0, device=DEVICE, requires_grad=True),
-            torch.tensor(0.0, device=DEVICE, requires_grad=True),
+        cable_pull_ratio = [
+            torch.tensor(0.5, device=device, requires_grad=True),
+            torch.tensor(0.0, device=device, requires_grad=True),
+            torch.tensor(0.0, device=device, requires_grad=True),
         ]
+        cable_stiffness, cable_damping = 100, 0.01
+        # object
+        object_file = Path("tests/data/cylinder.obj")
+        object_properties = MeshProperties(name="cylinder", density=1080.0)
+        object_transform = Transform(translation=[60, -60, -20], scale=[0.0015, 0.0015, 0.01], device=device)
+
+        cls.scene = SceneFactory(
+            scad_file=scad_file,
+            scad_parameters=scad_parameters,
+            ideal_edge_lenght=ideal_edge_length,
+            gripper_properties=gripper_properties,
+            gripper_transform=gripper_transform,
+            cable_pull_ratio=cable_pull_ratio,
+            cable_stiffness=cable_stiffness,
+            cable_damping=cable_damping,
+            object_file=object_file,
+            object_properties=object_properties,
+            object_transform=object_transform,
+            device=device,
+        ).create()
+
         variables = Variables()
-        cables = CableListFactory(stiffness=100, damping=0.01, pull_ratio=pull_ratio, holes=holes).create()
-        for cable in cables:
+        for cable in cls.scene.gripper.cables:
             variables.add_parameter(cable.pull_ratio)
-        scene = Scene(gripper=gripper_mesh, object=object_mesh, device=DEVICE)
         sim_properties = SimulationProperties(
-            duration=0.01, segment_duration=0.01, dt=2.1701388888888886e-05, device="cuda"
+            duration=0.01, segment_duration=0.01, dt=2.1701388888888886e-05, device=device
         )
-        simulation = Simulation(scene=scene, properties=sim_properties, cables=cables)
-        views = ThreeInteriorViews(center=object_mesh.nodes.position.mean(dim=0), device=DEVICE)
+        simulation = Simulation(scene=cls.scene, properties=sim_properties)
+        views = ThreeInteriorViews(center=cls.scene.object.nodes.position.mean(dim=0), device=device)
         rendering = InteriorGapRendering(
-            scene=scene,
+            scene=cls.scene,
             views=views,
-            device=DEVICE,
+            device=device,
         )
-        loss = MaxGripLoss(rendering=rendering, device=DEVICE)
-        # loss = ToyLoss(scene)
+        loss = MaxGripLoss(rendering=rendering, device=device)
         optimizer = GradientDescent(loss, variables, learning_rate=1e-2)
         cls.train = Train(simulation, loss, optimizer, num_iters=3)
 
