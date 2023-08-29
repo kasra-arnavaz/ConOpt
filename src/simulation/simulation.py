@@ -1,5 +1,4 @@
 import sys
-from typing import List
 import tqdm
 import torch
 from torch.utils.checkpoint import checkpoint
@@ -15,7 +14,6 @@ from cable.barycentric_factory import BarycentricListFactory
 class Simulation(torch.nn.Module):
     def __init__(self, scene: Scene, properties: SimulationProperties):
         super().__init__()
-        self.scene = scene
         self.free_memory = []
         self._properties = properties
         holes = [cable.holes for cable in scene.gripper.cables]
@@ -26,26 +24,28 @@ class Simulation(torch.nn.Module):
         self._nodes_force = NodesForce(barycentrics=self._barycentrics)
         self._nodes_position_and_velocity = NodesPositionAndVelocity(model=scene.model, dt=properties.dt)
 
-    def forward(self, np, nv):
-        def segment(np, nv, num_steps):
+    def forward(self, nodes_position, nodes_velocity):
+        def segment(nodes_position, nodes_velocity, num_steps):
             for _ in range(num_steps):
-                np, nv = self.step(np, nv)
-            return np, nv
+                nodes_position, nodes_velocity = self.step(nodes_position, nodes_velocity)
+            return nodes_position, nodes_velocity
 
         self._append_free_memory()
         for _ in tqdm.tqdm(range(self._properties.num_segments), "Simulation", colour="green", leave=False):
-            np.requires_grad_()
-            nv.requires_grad_()
-            np, nv = checkpoint(segment, np, nv, self._properties.num_steps_per_segment)
+            nodes_position.requires_grad_()
+            nodes_velocity.requires_grad_()
+            nodes_position, nodes_velocity = checkpoint(
+                segment, nodes_position, nodes_velocity, self._properties.num_steps_per_segment
+            )
             self._append_free_memory()
 
-        return np, nv
+        return nodes_position, nodes_velocity
 
-    def step(self, np, nv):
-        hp, hv = self._holes_position_and_velocity(np, nv)
-        hf = self._holes_force(hp, hv)
-        nf = self._nodes_force(hf)
-        return self._nodes_position_and_velocity(nf, np, nv)
+    def step(self, nodes_position, nodes_velocity):
+        holes_position, holes_velocity = self._holes_position_and_velocity(nodes_position, nodes_velocity)
+        holes_force = self._holes_force(holes_position, holes_velocity)
+        nodes_force = self._nodes_force(holes_force)
+        return self._nodes_position_and_velocity(nodes_force, nodes_position, nodes_velocity)
 
     def _append_free_memory(self):
         self.free_memory.append(torch.cuda.mem_get_info()[0] / (1024 * 1024 * 1024))

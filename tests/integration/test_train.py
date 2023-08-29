@@ -82,7 +82,7 @@ class TestMaxGripLoss(unittest.TestCase):
         )
         loss = MaxGripLoss(rendering=rendering, device=device)
         optimizer = GradientDescent(loss, variables, learning_rate=1e-2)
-        cls.train = Train(simulation, loss, optimizer, num_iters=3)
+        cls.train = Train(simulation, cls.scene, loss, optimizer, num_iters=3)
 
     def tests_if_train_runs(self):
         try:
