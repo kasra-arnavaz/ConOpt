@@ -25,7 +25,7 @@ from simulation.simulation_properties import SimulationProperties
 class TestMaxGripLoss(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        device = "cpu"
+        device = "cuda"
         # gripper
         scad_file = Path("tests/data/caterpillar.scad")
         scad_parameters = Path("tests/data/caterpillar_scad_params.json")
