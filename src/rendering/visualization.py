@@ -1,6 +1,5 @@
 from rendering.rendering import DepthRendering
 import matplotlib.pyplot as plt
-from pathlib import Path
 from os import PathLike
 
 

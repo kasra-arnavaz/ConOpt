@@ -3,7 +3,6 @@ import sys
 sys.path.append("src")
 
 from simulation.simulation import Simulation
-from simulation.scene import Scene
 
 
 def update_scene(simulation: Simulation) -> None:

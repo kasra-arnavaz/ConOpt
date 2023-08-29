@@ -5,8 +5,6 @@ from typing import List
 sys.path.append("src")
 
 from mesh.mesh import Mesh
-from cable.cable import Cable
-from cable.holes import Holes
 from warp.sim import Model
 from warp_wrapper.model_factory import ModelFactory
 import copy

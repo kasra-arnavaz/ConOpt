@@ -6,10 +6,10 @@ sys.path.append("src")
 from simulation.simulation import Simulation
 from objective.loss import Loss
 from objective.optimizer import Optimizer
+from simulation.update_scene import update_scene
 from rendering.visualization import Visualization
 from rendering.views import ThreeExteriorViews
 from rendering.rendering import ExteriorDepthRendering
-from simulation.update_scene import update_scene
 from pathlib import Path
 
 

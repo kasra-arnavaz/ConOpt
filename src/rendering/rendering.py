@@ -5,7 +5,6 @@ import sys
 import torch
 
 sys.path.append("src")
-from mesh.mesh import Mesh
 from rendering.views import Views, ExteriorViews, InteriorViews
 from functools import cached_property
 from simulation.scene import Scene
@@ -20,7 +19,7 @@ class DepthRendering(ABC):
         self._zfar = 10
         self._fov = 90
 
-    @staticmethod
+    @abstractmethod
     def get_images(self) -> List[torch.Tensor]:
         pass
 
