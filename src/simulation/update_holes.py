@@ -16,6 +16,7 @@ class HolesForce:
     def __call__(self, holes_positions: List[torch.Tensor], holes_velocities: List[torch.Tensor]) -> List[torch.Tensor]:
         holes_forces = []
         for holes_position, holes_velocity, cable in zip(holes_positions, holes_velocities, self._cables):
+            cable.update()
             force = torch.zeros(holes_position.shape, dtype=torch.float32, device=self._device)
             tangent_vector_pointing_to_the_tip = holes_position[1:] - holes_position[:-1]
             f = -cable.pull_ratio * cable.stiffness * tangent_vector_pointing_to_the_tip

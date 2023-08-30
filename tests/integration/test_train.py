@@ -72,7 +72,7 @@ class TestMaxGripLoss(unittest.TestCase):
         for cable in cls.scene.gripper.cables:
             variables.add_parameter(cable.pull_ratio)
         sim_properties = SimulationProperties(
-            duration=0.02, segment_duration=0.01, dt=2.1701388888888886e-05, device=device
+            duration=1.0, segment_duration=0.5, dt=2.1701388888888886e-05, device=device
         )
         simulation = Simulation(scene=cls.scene, properties=sim_properties)
         views = ThreeInteriorViews(center=cls.scene.object.nodes.position.mean(dim=0), device=device)
@@ -82,11 +82,11 @@ class TestMaxGripLoss(unittest.TestCase):
             device=device,
         )
         loss = MaxGripLoss(rendering=rendering, device=device)
-        optimizer = GradientDescent(loss, variables, learning_rate=1e-3)
+        optimizer = GradientDescent(loss, variables, learning_rate=5e-3)
         exterior_view = ThreeExteriorViews(distance=0.5, device=device)
         visual = Visual(ExteriorDepthRendering(scene=cls.scene, views=exterior_view, device=device), path=".tmp")
         log = Log(loss=loss, variables=variables, path=".tmp")
-        cls.train = Train(simulation, cls.scene, loss, optimizer, num_iters=3, log=log, visual=visual)
+        cls.train = Train(simulation, cls.scene, loss, optimizer, num_iters=100, log=log, visual=visual)
 
     def tests_if_train_runs(self):
         try:
