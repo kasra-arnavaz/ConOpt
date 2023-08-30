@@ -6,6 +6,7 @@ import numpy as np
 sys.path.append("src")
 from cable.cable import Cable
 from cable.holes import Holes
+from objective.variables import Variables
 
 
 class TestCable(unittest.TestCase):
@@ -37,6 +38,17 @@ class TestCable(unittest.TestCase):
         cable = Cable(holes=self.holes)
         cable.pull_ratio = torch.tensor(-1.0, dtype=torch.float32)
         expected = torch.tensor(0.0, dtype=torch.float32)
+        self.assertTrue(torch.equal(cable.pull_ratio, expected))
+
+    def tests_if_pull_ratio_is_clipped_to_zero_when_variables_parameters_is_changed_to_negative(self):
+        cable = Cable(holes=self.holes)
+        cable.pull_ratio = torch.tensor(0.5, dtype=torch.float32)
+        variables = Variables()
+        variables.add_parameter(cable._pull_ratio)
+        with torch.no_grad():
+            variables.parameters[0] -= 1.0
+        expected = torch.tensor(0.0, dtype=torch.float32)
+        print(cable.pull_ratio)
         self.assertTrue(torch.equal(cable.pull_ratio, expected))
 
 
