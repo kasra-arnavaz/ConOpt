@@ -10,10 +10,6 @@ class Cable:
     stiffness: float = field(default=100.0)
     damping: float = field(default=0.01)
 
-    def update(self):
-        # a hack to force on_setattr to run when pull_ratio is changed by pointer through variables in optimizer step
-        self.pull_ratio = self.pull_ratio
-
     @pull_ratio.default
     def _default_pull_ratio(self):
         return torch.tensor(0.0, dtype=torch.float32)
