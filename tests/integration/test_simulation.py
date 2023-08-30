@@ -64,7 +64,7 @@ class TestSimulation(unittest.TestCase):
             duration=0.02, segment_duration=0.01, dt=2.1701388888888886e-05, device=device
         )
         cls.simulation = Simulation(scene=cls.scene, properties=sim_properties)
-        update_scene(cls.simulation)
+        update_scene(scene=cls.scene, simulation=cls.simulation)
 
     def tests_if_simulation_releases_memory_after_each_segment(self):
         memory = self.simulation.free_memory

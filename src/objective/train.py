@@ -8,40 +8,54 @@ from objective.loss import Loss
 from objective.optimizer import Optimizer
 from simulation.update_scene import update_scene
 from simulation.scene import Scene
-from rendering.visualization import Visualization
-from rendering.views import ThreeExteriorViews
-from rendering.rendering import ExteriorDepthRendering
-from pathlib import Path
+from objective.log import Log
+from rendering.visual import Visual
 
 
 class Train:
-    def __init__(self, simulation: Simulation, scene: Scene, loss: Loss, optimizer: Optimizer, num_iters: int):
+    def __init__(
+        self,
+        simulation: Simulation,
+        scene: Scene,
+        loss: Loss,
+        optimizer: Optimizer,
+        num_iters: int,
+        log: Log = None,
+        visual: Visual = None,
+    ):
         self._simulation = simulation
         self._scene = scene
         self._loss = loss
         self._optimizer = optimizer
         self._num_iters = num_iters
-        # views = ThreeExteriorViews(distance=0.5, device="cuda")
-        # self._vis_rendering = ExteriorDepthRendering(scene=simulation.scene, views=views)
+        self._log = log
+        self._visual = visual
 
     def run(self, verbose: bool = True):
-        for i in tqdm.tqdm(
+        for self.i in tqdm.tqdm(
             range(self._num_iters),
             desc="Training",
             colour="blue",
             disable=verbose,
         ):
-            # Visualization(self._vis_rendering).save_images(Path(f"log/before_{i}.png"))
-            scene = update_scene(scene=self._scene, simulation=self._simulation)
+            self._visual.save_images(str(self.i)) if self._save_first_visuals() else None
+            update_scene(scene=self._scene, simulation=self._simulation)
+            self._visual.save_images(str(self.i + 1)) if self._save_visuals() else None
             self._loss.backward()
             self._optimizer.step()
-            self.print(i) if verbose else None
+            self.print() if verbose else None
+            self._log.save() if self._log is not None else None
             self._optimizer.zero_grad()
-            # Visualization(self._vis_rendering).save_images(Path(f"log/after_{i}.png"))
-            scene.reset()
+            self._scene.reset()
 
-    def print(self, iteration):
-        print(f"Iter: {iteration}")
+    def _save_visuals(self):
+        return self._visual is not None
+
+    def _save_first_visuals(self):
+        return self._save_visuals() and self.i == 0
+
+    def print(self):
+        print(f"Iter: {self.i}")
         print(f"Loss: {self._loss.get_loss()}")
         print(f"Grad: {self._optimizer._variables.gradients}")
         print(f"Alpha: {self._optimizer._variables.parameters}")

@@ -9,7 +9,7 @@ from mesh.mesh_properties import MeshProperties
 from simulation.simulation import Simulation
 from point.transform import Transform, get_quaternion
 from rendering.views import ThreeInteriorViews, ThreeExteriorViews
-from rendering.visualization import Visualization
+from rendering.visual import Visual
 from rendering.rendering import (
     ExteriorDepthRendering,
     InteriorGapRendering,
@@ -20,6 +20,7 @@ from objective.optimizer import GradientDescent, Adam
 from objective.train import Train
 from objective.variables import Variables
 from simulation.simulation_properties import SimulationProperties
+from objective.log import Log
 
 
 class TestMaxGripLoss(unittest.TestCase):
@@ -34,7 +35,7 @@ class TestMaxGripLoss(unittest.TestCase):
             name="caterpillar",
             density=1080.0,
             youngs_modulus=149_000,
-            poissons_ratio=0.40,
+            poissons_ratio=0.45,
             damping_factor=0.4,
             frozen_bounding_box=[-float("inf"), -0.01, -float("inf"), float("inf"), float("inf"), float("inf")],
         )
@@ -42,7 +43,7 @@ class TestMaxGripLoss(unittest.TestCase):
             rotation=get_quaternion(vector=[1, 0, 0], angle_in_degrees=90), scale=[0.001, 0.001, 0.001], device=device
         )
         cable_pull_ratio = [
-            torch.tensor(0.5, device=device, requires_grad=True),
+            torch.tensor(0.0, device=device, requires_grad=True),
             torch.tensor(0.0, device=device, requires_grad=True),
             torch.tensor(0.0, device=device, requires_grad=True),
         ]
@@ -71,7 +72,7 @@ class TestMaxGripLoss(unittest.TestCase):
         for cable in cls.scene.gripper.cables:
             variables.add_parameter(cable.pull_ratio)
         sim_properties = SimulationProperties(
-            duration=0.01, segment_duration=0.01, dt=2.1701388888888886e-05, device=device
+            duration=0.02, segment_duration=0.01, dt=2.1701388888888886e-05, device=device
         )
         simulation = Simulation(scene=cls.scene, properties=sim_properties)
         views = ThreeInteriorViews(center=cls.scene.object.nodes.position.mean(dim=0), device=device)
@@ -81,8 +82,11 @@ class TestMaxGripLoss(unittest.TestCase):
             device=device,
         )
         loss = MaxGripLoss(rendering=rendering, device=device)
-        optimizer = GradientDescent(loss, variables, learning_rate=1e-2)
-        cls.train = Train(simulation, cls.scene, loss, optimizer, num_iters=3)
+        optimizer = GradientDescent(loss, variables, learning_rate=1e-3)
+        exterior_view = ThreeExteriorViews(distance=0.5, device=device)
+        visual = Visual(ExteriorDepthRendering(scene=cls.scene, views=exterior_view, device=device), path=".tmp")
+        log = Log(loss=loss, variables=variables, path=".tmp")
+        cls.train = Train(simulation, cls.scene, loss, optimizer, num_iters=3, log=log, visual=visual)
 
     def tests_if_train_runs(self):
         try:

@@ -1,22 +1,35 @@
-class Log:
-    def __init__(self, config: Config, objective: Objective):
-        self._config = config
-        self._objective = objective
-        self.out_path = config.out_path
-        self.loss_log, self.gradient_log, self.parameters_log = [], [], []
-        self.prepare_path()
+import os
+import torch
+import sys
 
-    def prepare_path(self):
-        os.makedirs(f"{self.out_path}/log", exist_ok=True)
-        log_num = len(os.listdir(f"{self.out_path}/log")) + 1
-        self._log_path = f"{self.out_path}/log/{log_num}"
+sys.path.append("src")
+import copy
+from objective.loss import Loss
+from objective.variables import Variables
+import matplotlib.pyplot as plt
+
+
+class Log:
+    def __init__(self, loss: Loss, variables: Variables, path: str):
+        self._loss = loss
+        self._variables = variables
+        self._path = path
+        self.loss_log, self.gradient_log, self.parameters_log = [], [], []
+        self._prepare_path()
+
+    def _prepare_path(self):
+        os.makedirs(f"{self._path}/log", exist_ok=True)
+        num = len(os.listdir(f"{self._path}/log")) + 1
+        self._log_path = f"{self._path}/log/{num}"
         os.makedirs(self._log_path, exist_ok=True)
 
+    def _append_log(self):
+        self.loss_log.append(self._loss.get_loss().detach().cpu().tolist())
+        self.gradient_log.append(copy.deepcopy(self._variables.gradients))
+        self.parameters_log.append(copy.deepcopy(self._variables.parameters))
+
     def save(self):
-        self.loss_log.append(self._objective.loss.detach().cpu().tolist())
-        self.gradient_log.append(self._objective.gradient.detach().cpu().tolist())
-        self.parameters_log.append(self._objective.parameters.detach().cpu().tolist())
-        self._config.to_yaml(path=self._log_path, name="config")
+        self._append_log()
         torch.save(torch.tensor(self.loss_log), f"{self._log_path}/loss.pt")
         torch.save(torch.tensor(self.gradient_log), f"{self._log_path}/gradient.pt")
         torch.save(torch.tensor(self.parameters_log), f"{self._log_path}/parameter.pt")
