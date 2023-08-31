@@ -9,7 +9,7 @@ from mesh.mesh_properties import MeshProperties
 from point.transform import Transform
 from cable.holes_factory import HolesListFactory
 from cable.cable_factory import CableListFactory
-from simulation.scene import Scene
+from scene.scene import Scene
 from os import PathLike
 from typing import List
 import torch

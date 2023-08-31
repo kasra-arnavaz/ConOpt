@@ -7,10 +7,10 @@ from simulation.simulation import Simulation
 from objective.loss import Loss
 from objective.optimizer import Optimizer
 from simulation.update_scene import update_scene
-from simulation.scene import Scene
+from scene.scene import Scene
 from objective.log import Log
 from rendering.visual import Visual
-from simulation.scene_viewer import SceneViewer
+from scene.scene_viewer import SceneViewer
 
 
 class Train:

@@ -4,7 +4,7 @@ import sys
 
 sys.path.append("src")
 from pathlib import Path
-from simulation.scene_factory import SceneFactory
+from scene.scene_factory import SceneFactory
 from mesh.mesh_properties import MeshProperties
 from simulation.simulation import Simulation
 from point.transform import Transform, get_quaternion
@@ -21,7 +21,7 @@ from objective.train import Train
 from objective.variables import Variables
 from simulation.simulation_properties import SimulationProperties
 from objective.log import Log
-from simulation.scene_viewer import SceneViewer
+from scene.scene_viewer import SceneViewer
 
 
 class TestMaxGripLoss(unittest.TestCase):

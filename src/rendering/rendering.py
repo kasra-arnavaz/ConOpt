@@ -7,7 +7,7 @@ import torch
 sys.path.append("src")
 from rendering.views import Views, ExteriorViews, InteriorViews
 from functools import cached_property
-from simulation.scene import Scene
+from scene.scene import Scene
 
 
 class DepthRendering(ABC):

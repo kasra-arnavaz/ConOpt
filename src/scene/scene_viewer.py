@@ -1,12 +1,11 @@
 from pxr import Usd
 import warp as wp
-import tqdm
 import os
 import warp.sim.render
 import sys
 
 sys.path.append("src")
-from simulation.scene import Scene
+from scene.scene import Scene
 
 wp.init()
 

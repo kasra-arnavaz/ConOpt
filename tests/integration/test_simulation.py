@@ -5,12 +5,11 @@ import sys
 sys.path.append("src")
 from pathlib import Path
 from simulation.simulation import Simulation
-from simulation.scene_factory import SceneFactory
+from scene.scene_factory import SceneFactory
 from point.transform import Transform, get_quaternion
 from mesh.mesh_properties import MeshProperties
 from simulation.simulation_properties import SimulationProperties
 from simulation.update_scene import update_scene
-from simulation.scene_viewer import SceneViewer
 
 
 class TestSimulation(unittest.TestCase):

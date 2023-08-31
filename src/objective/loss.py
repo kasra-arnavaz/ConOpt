@@ -5,7 +5,7 @@ import sys
 sys.path.append("src")
 
 from rendering.rendering import InteriorGapRendering
-from simulation.scene import Scene
+from scene.scene import Scene
 
 
 class Loss(ABC):

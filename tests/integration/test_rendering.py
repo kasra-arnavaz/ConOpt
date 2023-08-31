@@ -10,7 +10,7 @@ from point.transform import Transform, get_quaternion
 from rendering.views import SixExteriorViews, SixInteriorViews
 from rendering.rendering import ExteriorDepthRendering, InteriorGapRendering, InteriorContactRendering
 from simulation.simulation_properties import SimulationProperties
-from simulation.scene_factory import SceneFactory
+from scene.scene_factory import SceneFactory
 from simulation.update_scene import update_scene
 
 

@@ -4,16 +4,14 @@ import sys
 
 sys.path.append("src")
 from pathlib import Path
-from mesh.mesh_factory import MeshFactoryFromScad, MeshFactoryFromObj
-from mesh.scad import Scad
 from mesh.mesh_properties import MeshProperties
 from simulation.simulation import Simulation
 from point.transform import Transform, get_quaternion
 from rendering.views import ThreeInteriorViews
-from rendering.rendering import ExteriorDepthRendering, InteriorGapRendering, InteriorContactRendering
+from rendering.rendering import InteriorGapRendering
 from objective.loss import MaxGripLoss
 from simulation.simulation_properties import SimulationProperties
-from simulation.scene_factory import SceneFactory
+from scene.scene_factory import SceneFactory
 from simulation.update_scene import update_scene
 
 

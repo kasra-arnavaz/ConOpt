@@ -4,7 +4,7 @@ import torch
 from torch.utils.checkpoint import checkpoint
 
 sys.path.append("src")
-from simulation.scene import Scene
+from scene.scene import Scene
 from simulation.update_holes import HolesForce, HolesPositionAndVelocity
 from simulation.update_nodes import NodesForce, NodesPositionAndVelocity
 from simulation.simulation_properties import SimulationProperties

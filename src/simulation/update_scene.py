@@ -3,8 +3,8 @@ import sys
 sys.path.append("src")
 
 from simulation.simulation import Simulation
-from simulation.scene import Scene
-from simulation.scene_viewer import SceneViewer
+from scene.scene import Scene
+from scene.scene_viewer import SceneViewer
 import tqdm
 
 

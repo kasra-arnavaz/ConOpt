@@ -4,7 +4,7 @@ import sys
 
 sys.path.append("src")
 from pathlib import Path
-from simulation.scene_factory import SceneFactory
+from scene.scene_factory import SceneFactory
 from mesh.mesh_properties import MeshProperties
 from simulation.simulation import Simulation
 from point.transform import Transform, get_quaternion
