@@ -50,6 +50,6 @@ sim_duration: 1.0
 sim_segment_duration: 0.1
 sim_dt: 5.0e-05
 learning_rate: 0.01
-num_training_iterations: 100
+num_training_iterations: 200
 device: cuda
 out_path: .dev

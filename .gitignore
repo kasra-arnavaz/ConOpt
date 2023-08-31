@@ -10,8 +10,6 @@ log/
 __pycache__/
 *.py[cod]
 *$py.class
-test.txt
-text.txt
 # C extensions
 *.so
 
