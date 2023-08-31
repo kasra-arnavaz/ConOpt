@@ -3,6 +3,7 @@
 alaki*.py
 .vscode
 .tmp/
+.dev/
 fTetWild/
 log/
 # Byte-compiled / optimized / DLL files

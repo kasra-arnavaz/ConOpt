@@ -1,5 +1,4 @@
 import torch
-import unittest
 import sys
 
 sys.path.append("src")
@@ -22,83 +21,97 @@ from objective.variables import Variables
 from simulation.simulation_properties import SimulationProperties
 from objective.log import Log
 from scene.scene_viewer import SceneViewer
+from config.config import Config
+import argparse
 
 
-class TestMaxGripLoss(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        device = "cuda"
-        # gripper
-        scad_file = Path("tests/data/caterpillar.scad")
-        scad_parameters = Path("tests/data/caterpillar_scad_params.json")
-        ideal_edge_length = 0.02
-        gripper_properties = MeshProperties(
-            name="caterpillar",
-            density=1080.0,
-            youngs_modulus=149_000,
-            poissons_ratio=0.40,
-            damping_factor=0.4,
-            frozen_bounding_box=[-float("inf"), -0.01, -float("inf"), float("inf"), float("inf"), float("inf")],
-        )
-        gripper_transform = Transform(
-            rotation=get_quaternion(vector=[1, 0, 0], angle_in_degrees=90), scale=[0.001, 0.001, 0.001], device=device
-        )
-        cable_pull_ratio = [
-            torch.tensor(0.0, device=device, requires_grad=True),
-            torch.tensor(0.0, device=device, requires_grad=True),
-            torch.tensor(0.0, device=device, requires_grad=True),
-        ]
-        cable_stiffness, cable_damping = 100, 0.01
-        # object
-        object_file = Path("tests/data/cylinder.obj")
-        object_properties = MeshProperties(name="cylinder", density=1080.0)
-        object_transform = Transform(translation=[60, -60, -20], scale=[0.0015, 0.0015, 0.01], device=device)
+def main(args):
+    config = Config.from_yaml(args.config)
+    DEVICE = config.device
+    PATH = config.out_path
+    config.to_yaml(path=PATH)
 
-        cls.scene = SceneFactory(
-            scad_file=scad_file,
-            scad_parameters=scad_parameters,
-            ideal_edge_lenght=ideal_edge_length,
-            gripper_properties=gripper_properties,
-            gripper_transform=gripper_transform,
-            cable_pull_ratio=cable_pull_ratio,
-            cable_stiffness=cable_stiffness,
-            cable_damping=cable_damping,
-            object_file=object_file,
-            object_properties=object_properties,
-            object_transform=object_transform,
-            device=device,
-        ).create()
+    # gripper
+    scad_file = Path(config.scad_file)
+    scad_parameters = Path(config.scad_parameters)
+    ideal_edge_length = config.ideal_edge_length
+    gripper_properties = MeshProperties(
+        name="gripper",
+        density=config.gripper_density,
+        youngs_modulus=config.gripper_youngs_modulus,
+        poissons_ratio=config.gripper_poissons_ratio,
+        damping_factor=config.gripper_damping_factor,
+        frozen_bounding_box=config.gripper_frozen_bounding_box,
+    )
+    gripper_transform = Transform(
+        translation=config.gripper_translation,
+        rotation=get_quaternion(
+            vector=config.gripper_rotation_vector, angle_in_degrees=config.gripper_rotation_degrees
+        ),
+        scale=config.gripper_scale,
+        device=DEVICE,
+    )
+    cable_pull_ratio = [torch.tensor(pull, device=DEVICE) for pull in config.cable_pull_ratio]
+    cable_stiffness, cable_damping = config.cable_stiffness, config.cable_damping
 
-        variables = Variables()
-        for cable in cls.scene.gripper.cables:
-            variables.add_parameter(cable.pull_ratio)
-        sim_properties = SimulationProperties(
-            duration=1.0, segment_duration=0.1, dt=2.1701388888888886e-05, device=device
-        )
-        simulation = Simulation(scene=cls.scene, properties=sim_properties)
-        views = ThreeInteriorViews(center=cls.scene.object.nodes.position.mean(dim=0), device=device)
-        rendering = InteriorGapRendering(
-            scene=cls.scene,
-            views=views,
-            device=device,
-        )
-        loss = MaxGripLoss(rendering=rendering, device=device)
-        optimizer = GradientDescent(loss, variables, learning_rate=1e-3)
-        exterior_view = ThreeExteriorViews(distance=0.5, device=device)
-        PATH = ".tmp"
-        visual = Visual(ExteriorDepthRendering(scene=cls.scene, views=exterior_view, device=device), path=PATH)
-        log = Log(loss=loss, variables=variables, path=PATH)
-        viewer = SceneViewer(scene=cls.scene, path=PATH)
-        cls.train = Train(
-            simulation, cls.scene, loss, optimizer, num_iters=100, log=log, visual=visual, scene_viewer=viewer
-        )
+    # object
+    object_file = Path(config.object_file)
+    object_properties = MeshProperties(name="object", density=config.object_density)
+    object_transform = Transform(
+        translation=config.object_translation,
+        rotation=get_quaternion(vector=config.object_rotation_vector, angle_in_degrees=config.object_rotation_degrees),
+        scale=config.object_scale,
+        device=DEVICE,
+    )
 
-    def tests_if_train_runs(self):
-        try:
-            self.train.run(verbose=True)
-        except:
-            self.fail()
+    scene = SceneFactory(
+        scad_file=scad_file,
+        scad_parameters=scad_parameters,
+        ideal_edge_lenght=ideal_edge_length,
+        gripper_properties=gripper_properties,
+        gripper_transform=gripper_transform,
+        cable_pull_ratio=cable_pull_ratio,
+        cable_stiffness=cable_stiffness,
+        cable_damping=cable_damping,
+        object_file=object_file,
+        object_properties=object_properties,
+        object_transform=object_transform,
+        device=DEVICE,
+    ).create()
+
+    variables = Variables()
+    for cable in scene.gripper.cables:
+        variables.add_parameter(cable.pull_ratio)
+    sim_properties = SimulationProperties(
+        duration=config.sim_duration, segment_duration=config.sim_segment_duration, dt=config.sim_dt, device=DEVICE
+    )
+    simulation = Simulation(scene=scene, properties=sim_properties)
+    views = ThreeInteriorViews(center=scene.object.nodes.position.mean(dim=0), device=DEVICE)
+    rendering = InteriorGapRendering(
+        scene=scene,
+        views=views,
+        device=DEVICE,
+    )
+    loss = MaxGripLoss(rendering=rendering, device=DEVICE)
+    optimizer = GradientDescent(loss, variables, learning_rate=config.learning_rate)
+    exterior_view = ThreeExteriorViews(distance=0.5, device=DEVICE)
+    visual = Visual(ExteriorDepthRendering(scene=scene, views=exterior_view, device=DEVICE), path=PATH)
+    log = Log(loss=loss, variables=variables, path=PATH)
+    viewer = SceneViewer(scene=scene, path=PATH)
+    Train(
+        simulation,
+        scene,
+        loss,
+        optimizer,
+        num_iters=config.num_training_iterations,
+        log=log,
+        visual=visual,
+        scene_viewer=viewer,
+    ).run(verbose=True)
 
 
 if __name__ == "__main__":
-    unittest.main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--config", type=str, help="path like with yaml format")
+    args = parser.parse_args()
+    main(args)
