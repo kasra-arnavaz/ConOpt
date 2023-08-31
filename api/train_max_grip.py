@@ -23,12 +23,13 @@ from objective.log import Log
 from scene.scene_viewer import SceneViewer
 from config.config import Config
 import argparse
+from utils.path import get_next_numbered_path
 
 
 def main(args):
     config = Config.from_yaml(args.config)
     DEVICE = config.device
-    PATH = config.out_path
+    PATH = get_next_numbered_path(config.out_path)
     config.to_yaml(path=PATH)
 
     # gripper

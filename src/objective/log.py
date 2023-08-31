@@ -15,13 +15,7 @@ class Log:
         self._variables = variables
         self._path = path
         self.loss_log, self.gradient_log, self.parameters_log = [], [], []
-        self._prepare_path()
-
-    def _prepare_path(self):
-        os.makedirs(f"{self._path}/log", exist_ok=True)
-        num = len(os.listdir(f"{self._path}/log")) + 1
-        self._log_path = f"{self._path}/log/{num}"
-        os.makedirs(self._log_path, exist_ok=True)
+        os.makedirs(path, exist_ok=True)
 
     def _append_log(self):
         self.loss_log.append(self._loss.get_loss().detach().cpu().tolist())
@@ -30,9 +24,9 @@ class Log:
 
     def save(self):
         self._append_log()
-        torch.save(torch.tensor(self.loss_log), f"{self._log_path}/loss.pt")
-        torch.save(torch.tensor(self.gradient_log), f"{self._log_path}/gradient.pt")
-        torch.save(torch.tensor(self.parameters_log), f"{self._log_path}/parameter.pt")
+        torch.save(torch.tensor(self.loss_log), f"{self._path}/loss.pt")
+        torch.save(torch.tensor(self.gradient_log), f"{self._path}/gradient.pt")
+        torch.save(torch.tensor(self.parameters_log), f"{self._path}/parameter.pt")
 
     @staticmethod
     def plot(path):
