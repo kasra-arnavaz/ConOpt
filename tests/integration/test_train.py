@@ -35,7 +35,7 @@ class TestMaxGripLoss(unittest.TestCase):
             name="caterpillar",
             density=1080.0,
             youngs_modulus=149_000,
-            poissons_ratio=0.45,
+            poissons_ratio=0.49,
             damping_factor=0.4,
             frozen_bounding_box=[-float("inf"), -0.01, -float("inf"), float("inf"), float("inf"), float("inf")],
         )
@@ -72,7 +72,7 @@ class TestMaxGripLoss(unittest.TestCase):
         for cable in cls.scene.gripper.cables:
             variables.add_parameter(cable.pull_ratio)
         sim_properties = SimulationProperties(
-            duration=1.0, segment_duration=0.5, dt=2.1701388888888886e-05, device=device
+            duration=1.0, segment_duration=0.1, dt=2.1701388888888886e-05, device=device
         )
         simulation = Simulation(scene=cls.scene, properties=sim_properties)
         views = ThreeInteriorViews(center=cls.scene.object.nodes.position.mean(dim=0), device=device)
@@ -82,10 +82,11 @@ class TestMaxGripLoss(unittest.TestCase):
             device=device,
         )
         loss = MaxGripLoss(rendering=rendering, device=device)
-        optimizer = GradientDescent(loss, variables, learning_rate=5e-3)
+        optimizer = GradientDescent(loss, variables, learning_rate=5e-2)
         exterior_view = ThreeExteriorViews(distance=0.5, device=device)
-        visual = Visual(ExteriorDepthRendering(scene=cls.scene, views=exterior_view, device=device), path=".tmp")
-        log = Log(loss=loss, variables=variables, path=".tmp")
+        PATH = ".tmp"
+        visual = Visual(ExteriorDepthRendering(scene=cls.scene, views=exterior_view, device=device), path=PATH)
+        log = Log(loss=loss, variables=variables, path=PATH)
         cls.train = Train(simulation, cls.scene, loss, optimizer, num_iters=100, log=log, visual=visual)
 
     def tests_if_train_runs(self):

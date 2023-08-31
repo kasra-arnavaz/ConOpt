@@ -27,7 +27,9 @@ class GradientDescent(Optimizer):
     def step(self):
         self._variables.set_gradients()
         for i in range(len(self._variables)):
+            # TODO: move the relu to where appropriate
             self._variables.parameters[i] -= self._variables.gradients[i] * self._learning_rate
+            torch.nn.ReLU(inplace=True)(self._variables.parameters[i])
 
 
 class Adam(Optimizer):
