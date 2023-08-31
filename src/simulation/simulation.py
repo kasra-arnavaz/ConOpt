@@ -15,7 +15,7 @@ class Simulation(torch.nn.Module):
     def __init__(self, scene: Scene, properties: SimulationProperties):
         super().__init__()
         self.free_memory = []
-        self._properties = properties
+        self.properties = properties
         holes = [cable.holes for cable in scene.gripper.cables]
         self._barycentrics = BarycentricListFactory(scene.gripper, holes, properties.device).create()
         # functions
@@ -31,13 +31,12 @@ class Simulation(torch.nn.Module):
             return nodes_position, nodes_velocity
 
         self._append_free_memory()
-        for _ in tqdm.tqdm(range(self._properties.num_segments), "Simulation", colour="green", leave=False):
-            nodes_position.requires_grad_()
-            nodes_velocity.requires_grad_()
-            nodes_position, nodes_velocity = checkpoint(
-                segment, nodes_position, nodes_velocity, self._properties.num_steps_per_segment
-            )
-            self._append_free_memory()
+        nodes_position.requires_grad_()
+        nodes_velocity.requires_grad_()
+        nodes_position, nodes_velocity = checkpoint(
+            segment, nodes_position, nodes_velocity, self.properties.num_steps_per_segment
+        )
+        self._append_free_memory()
 
         return nodes_position, nodes_velocity
 

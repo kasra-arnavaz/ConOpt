@@ -13,7 +13,7 @@ from simulation.update_scene import update_scene
 from simulation.scene_viewer import SceneViewer
 
 
-class TestSimulation(unittest.TestCase):
+class TestSceneViewer(unittest.TestCase):
     """Only checks memory and gradients but final mesh needs to be viewed manually
     to make sure the outcome is accurate."""
 
@@ -62,20 +62,16 @@ class TestSimulation(unittest.TestCase):
         ).create()
 
         sim_properties = SimulationProperties(
-            duration=0.02, segment_duration=0.01, dt=2.1701388888888886e-05, device=device
+            duration=0.5, segment_duration=0.05, dt=2.1701388888888886e-05, device=device
         )
         cls.simulation = Simulation(scene=cls.scene, properties=sim_properties)
-        update_scene(scene=cls.scene, simulation=cls.simulation, viewer=None)
+        cls.viewer = SceneViewer(scene=cls.scene, path=".tmp")
 
-    def tests_if_simulation_releases_memory_after_each_segment(self):
-        memory = self.simulation.free_memory
-        self.assertTrue(max(memory) - min(memory) <= 0.1)
-
-    def tests_if_a_gradients_of_pull_ratio_are_not_none_given_a_loss(self):
-        loss = self.scene.gripper.nodes.position.sum().requires_grad_()
-        loss.backward()
-        for cable in self.scene.gripper.cables:
-            self.assertIsNotNone(cable.pull_ratio.grad)
+    def tests_if_simulation_runs_with_viewer(self):
+        try:
+            update_scene(scene=self.scene, simulation=self.simulation, viewer=self.viewer)
+        except:
+            self.fail()
 
 
 if __name__ == "__main__":

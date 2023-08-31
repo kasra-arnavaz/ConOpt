@@ -1,15 +1,17 @@
-from scene import Scene
 from pxr import Usd
 import warp as wp
 import tqdm
-from abc import ABC, abstractmethod
 import os
 import warp.sim.render
+import sys
+
+sys.path.append("src")
+from simulation.scene import Scene
 
 wp.init()
 
 
-class SceneViewer(ABC):
+class SceneViewer:
     def __init__(self, scene: Scene, path: str):
         self._scene = scene
         self._path = path
@@ -23,7 +25,7 @@ class SceneViewer(ABC):
         self.path = f"{self._path}/scene/{self.scene_num}"
         os.makedirs(self.path, exist_ok=True)
 
-    def record_frame(self, time: float = 0.0):
+    def record(self, time: float = 0.0):
         with wp.ScopedTimer("render", print=False):
             self.usd.begin_frame(time)
             for mesh in [self._scene.gripper, self._scene.object]:
@@ -34,28 +36,6 @@ class SceneViewer(ABC):
                 )
             self.usd.end_frame()
 
-    @abstractmethod
-    def record(self):
-        pass
-
-    def save(self):
+    def save(self, time: float):
+        self.record(time=time)
         self.usd.save()
-
-
-class StaticSceneViewer(SceneViewer):
-    def record(self):
-        self.record_frame()
-        return self
-
-
-class DynamicSceneViewer(SceneViewer):
-    def __init__(self, path: str, scene: Scene):
-        super().__init__(path, scene)
-
-    def record(self):
-        time = 0.0
-            self.record_frame(time)
-            self.simulation.update_one_segment()
-            self.simulation.bind_states_between_segments()
-            time += self.simulation._dt * self.simulation._num_substeps
-        return self
