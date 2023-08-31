@@ -10,6 +10,7 @@ from simulation.update_scene import update_scene
 from simulation.scene import Scene
 from objective.log import Log
 from rendering.visual import Visual
+from simulation.scene_viewer import SceneViewer
 
 
 class Train:
@@ -22,6 +23,7 @@ class Train:
         num_iters: int,
         log: Log = None,
         visual: Visual = None,
+        scene_viewer: SceneViewer = None,
     ):
         self._simulation = simulation
         self._scene = scene
@@ -30,6 +32,7 @@ class Train:
         self._num_iters = num_iters
         self._log = log
         self._visual = visual
+        self._scene_viewer = scene_viewer
 
     def run(self, verbose: bool = True):
         for self.i in tqdm.tqdm(
@@ -39,7 +42,7 @@ class Train:
             disable=verbose,
         ):
             self._visual.save_images(str(self.i)) if self._save_first_visuals() else None
-            update_scene(scene=self._scene, simulation=self._simulation)
+            update_scene(scene=self._scene, simulation=self._simulation, viewer=self._scene_viewer)
             self._visual.save_images(str(self.i + 1)) if self._save_visuals() else None
             self._loss.backward()
             self._optimizer.step()
