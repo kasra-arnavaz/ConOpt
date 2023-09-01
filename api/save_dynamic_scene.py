@@ -7,23 +7,12 @@ from scene.scene_factory import SceneFactoryFromMsh, SceneFactoryFromScad
 from mesh.mesh_properties import MeshProperties
 from simulation.simulation import Simulation
 from point.transform import Transform, get_quaternion
-from rendering.views import ThreeInteriorViews, ThreeExteriorViews
-from rendering.visual import Visual
-from rendering.rendering import (
-    ExteriorDepthRendering,
-    InteriorGapRendering,
-    InteriorContactRendering,
-)
-from objective.loss import MaxGripLoss
-from objective.optimizer import GradientDescent, Adam
-from objective.train import Train
-from objective.variables import Variables
 from simulation.simulation_properties import SimulationProperties
-from objective.log import Log
 from scene.scene_viewer import SceneViewer
 from config.config import Config
 import argparse
 from utils.path import get_next_numbered_path
+from simulation.update_scene import update_scene
 
 
 def main(args):
@@ -82,35 +71,12 @@ def main(args):
         device=DEVICE,
     ).create()
 
-    variables = Variables()
-    for cable in scene.gripper.cables:
-        variables.add_parameter(cable.pull_ratio)
     sim_properties = SimulationProperties(
         duration=config.sim_duration, segment_duration=config.sim_segment_duration, dt=config.sim_dt, device=DEVICE
     )
     simulation = Simulation(scene=scene, properties=sim_properties)
-    views = ThreeInteriorViews(center=scene.object.nodes.position.mean(dim=0), device=DEVICE)
-    rendering = InteriorGapRendering(
-        scene=scene,
-        views=views,
-        device=DEVICE,
-    )
-    loss = MaxGripLoss(rendering=rendering, device=DEVICE)
-    optimizer = GradientDescent(loss, variables, learning_rate=config.learning_rate)
-    exterior_view = ThreeExteriorViews(distance=0.5, device=DEVICE)
-    visual = Visual(ExteriorDepthRendering(scene=scene, views=exterior_view, device=DEVICE), path=PATH)
-    log = Log(loss=loss, variables=variables, path=PATH)
     viewer = SceneViewer(scene=scene, path=PATH)
-    Train(
-        simulation,
-        scene,
-        loss,
-        optimizer,
-        num_iters=config.num_training_iterations,
-        log=log,
-        visual=visual,
-        scene_viewer=viewer,
-    ).run(verbose=True)
+    update_scene(scene=scene, simulation=simulation, viewer=viewer)
 
 
 if __name__ == "__main__":

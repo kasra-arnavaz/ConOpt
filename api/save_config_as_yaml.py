@@ -7,6 +7,7 @@ from config.config import Config
 
 def main():
     config = Config(
+        msh_file="tests/data/caterpillar.msh",
         scad_file="tests/data/caterpillar.scad",
         scad_parameters="tests/data/caterpillar_scad_params.json",
         ideal_edge_length=0.02,
@@ -44,7 +45,7 @@ def main():
         device="cuda",
         out_path=".dev/max_grip",
     )
-    config.to_yaml(path=".dev", name="config")
+    config.to_yaml(path=".", name="config")
 
 
 if __name__ == "__main__":

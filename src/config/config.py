@@ -5,6 +5,7 @@ from attrs import define, asdict
 
 @define
 class Config:
+    msh_file: str
     scad_file: str
     scad_parameters: str
     ideal_edge_length: float

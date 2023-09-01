@@ -2,7 +2,7 @@ import sys
 
 sys.path.append("src")
 
-from mesh.mesh_factory import MeshFactoryFromScad, MeshFactoryFromObj
+from mesh.mesh_factory import MeshFactoryFromScad, MeshFactoryFromObj, MeshFactoryFromMsh
 from cable.holes_initial_position import HolesInitialPosition
 from mesh.scad import Scad
 from mesh.mesh_properties import MeshProperties
@@ -17,10 +17,10 @@ from attrs import define
 
 
 @define
-class SceneFactory:
+class SceneFactoryFromScad:
     scad_file: PathLike
     scad_parameters: PathLike
-    ideal_edge_lenght: float
+    ideal_edge_length: float
     gripper_properties: MeshProperties
     gripper_transform: Transform
     cable_pull_ratio: List[torch.Tensor]
@@ -37,7 +37,7 @@ class SceneFactory:
         return Scene(gripper=self._gripper(), object=self._object(), device=self.device)
 
     def _gripper(self):
-        mesh = MeshFactoryFromScad(self._scad(), self.ideal_edge_lenght, self.device).create()
+        mesh = MeshFactoryFromScad(self._scad(), self.ideal_edge_length, self.device).create()
         self.gripper_transform.apply(mesh.nodes)
         mesh.properties = self.gripper_properties
         mesh.cables = self._cables()
@@ -61,3 +61,32 @@ class SceneFactory:
         for hole in holes:
             self.gripper_transform.apply(hole)
         return holes
+
+
+@define
+class SceneFactoryFromMsh(SceneFactoryFromScad):
+    msh_file: PathLike
+    scad_file: PathLike  # are still needed to compute hole_positions
+    scad_parameters: PathLike
+    ideal_edge_length: float
+    gripper_properties: MeshProperties
+    gripper_transform: Transform
+    cable_pull_ratio: List[torch.Tensor]
+    cable_stiffness: float
+    cable_damping: float
+
+    object_file: PathLike
+    object_properties: MeshProperties
+    object_transform: Transform
+
+    device: str
+
+    def create(self) -> Scene:
+        return Scene(gripper=self._gripper(), object=self._object(), device=self.device)
+
+    def _gripper(self):
+        mesh = MeshFactoryFromMsh(self.msh_file, self.device).create()
+        self.gripper_transform.apply(mesh.nodes)
+        mesh.properties = self.gripper_properties
+        mesh.cables = self._cables()
+        return mesh
