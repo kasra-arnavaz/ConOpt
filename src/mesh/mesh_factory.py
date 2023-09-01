@@ -70,12 +70,7 @@ class MeshFactoryFromScad(MeshFactory):
 
     def create(self):
         self._create_files()
-        msh_factory = MeshFactoryFromMsh(file=self._get_msh_file(), device=self._device)
-        position = msh_factory._get_position()
-        tetrahedra = msh_factory._get_tetrahedra()
-        nodes = Nodes(position=position)
-        elements = Elements(tetrahedra=tetrahedra)
-        return Mesh(nodes, elements)
+        return MeshFactoryFromMsh(file=self._get_msh_file(), device=self._device).create()
 
     def _create_files(self):
         self._convert_scad_to_stl()
