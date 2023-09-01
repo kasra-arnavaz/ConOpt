@@ -73,6 +73,6 @@ class ModelFactory:
         model.tri_ke, model.tri_ka, model.tri_kd, model.tri_kb = 0.0, 0.0, 0.0, 0.0
         model.ground = False
         model.gravity = (0.0, -9.8, 0.0)
-        model.soft_contact_distance = 0.01
+        model.soft_contact_distance = 0.0
         model.soft_contact_ke, model.soft_contact_kd, model.soft_contact_kf = 0.1, 0.1, 0.1
         return model
