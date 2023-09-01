@@ -12,12 +12,13 @@ from cable.barycentric_factory import BarycentricListFactory
 
 
 class Simulation(torch.nn.Module):
-    def __init__(self, scene: Scene, properties: SimulationProperties):
+    def __init__(self, scene: Scene, properties: SimulationProperties, use_checkpoint: bool = True):
         super().__init__()
         self.free_memory = []
         self.properties = properties
         holes = [cable.holes for cable in scene.gripper.cables]
         self._barycentrics = BarycentricListFactory(scene.gripper, holes, properties.device).create()
+        self._use_checkpoint = use_checkpoint
         # functions
         self._holes_position_and_velocity = HolesPositionAndVelocity(barycentrics=self._barycentrics)
         self._holes_force = HolesForce(cables=scene.gripper.cables, device=properties.device)
@@ -33,9 +34,14 @@ class Simulation(torch.nn.Module):
         self._append_free_memory()
         nodes_position.requires_grad_()
         nodes_velocity.requires_grad_()
-        nodes_position, nodes_velocity = checkpoint(
-            segment, nodes_position, nodes_velocity, self.properties.num_steps_per_segment
-        )
+        if self._use_checkpoint:
+            nodes_position, nodes_velocity = checkpoint(
+                segment, nodes_position, nodes_velocity, self.properties.num_steps_per_segment
+            )
+        else:
+            nodes_position, nodes_velocity = segment(
+                nodes_position, nodes_velocity, self.properties.num_steps_per_segment
+            )
         self._append_free_memory()
 
         return nodes_position, nodes_velocity

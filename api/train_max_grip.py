@@ -88,7 +88,7 @@ def main(args):
     sim_properties = SimulationProperties(
         duration=config.sim_duration, segment_duration=config.sim_segment_duration, dt=config.sim_dt, device=DEVICE
     )
-    simulation = Simulation(scene=scene, properties=sim_properties)
+    simulation = Simulation(scene=scene, properties=sim_properties, use_checkpoint=True)
     views = ThreeInteriorViews(center=scene.object.nodes.position.mean(dim=0), device=DEVICE)
     rendering = InteriorGapRendering(
         scene=scene,

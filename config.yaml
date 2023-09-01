@@ -1,4 +1,4 @@
-msh_file: data/long_caterpillar.msh
+msh_file: data/caterpillar.msh
 scad_file: data/caterpillar.scad
 scad_parameters: data/caterpillar_scad_params.json
 ideal_edge_length: 0.02
@@ -27,9 +27,9 @@ gripper_scale:
 - 0.001
 - 0.001
 cable_pull_ratio:
-- 0.2170
-- 0.4906
-- 0.0348
+- 0.0
+- 0.0
+- 0.0
 cable_stiffness: 100
 cable_damping: 0.01
 object_file: tests/data/cylinder.obj
@@ -47,10 +47,10 @@ object_scale:
 - 0.0015
 - 0.0015
 - 0.01
-sim_duration: 5.0
+sim_duration: 1.0
 sim_segment_duration: 0.1
 sim_dt: 5.0e-05
-learning_rate: 0.01
-num_training_iterations: 200
+learning_rate: 0.005
+num_training_iterations: 1
 device: cuda
 out_path: .dev/max_grip
