@@ -100,7 +100,6 @@ def main(args):
     exterior_view = ThreeExteriorViews(distance=0.5, device=DEVICE)
     visual = Visual(ExteriorDepthRendering(scene=scene, views=exterior_view, device=DEVICE), path=PATH)
     log = Log(loss=loss, variables=variables, path=PATH)
-    viewer = SceneViewer(scene=scene, path=PATH)
     Train(
         simulation,
         scene,
@@ -109,7 +108,6 @@ def main(args):
         num_iters=config.num_training_iterations,
         log=log,
         visual=visual,
-        scene_viewer=viewer,
     ).run(verbose=True)
 
 
