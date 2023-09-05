@@ -12,7 +12,7 @@ hole_pos(Diameter, H_cylinder, h_cone, Num_holes);
 //hole_tubes(Diameter, H_cylinder, h_cone, Num_holes);
 //mold(Diameter, H_cylinder, h_cone);
 
-module hole_pos(Diameter, H_cylinder, h_cone, Num_holes, margin_r=2.5, d_end=10, eps=0.5)
+module hole_pos(Diameter, H_cylinder, h_cone, Num_holes, margin_r=2.5, d_end=10, eps=1.0)
 {
     H_block = calc_H_block(H_cylinder, h_cone);
     Z_shift = calc_z_shift(H_block);
@@ -27,8 +27,8 @@ module hole_pos(Diameter, H_cylinder, h_cone, Num_holes, margin_r=2.5, d_end=10,
         z = h_cone*(Diameter[i]-2*r)/(Diameter[i]-d_end);
         z_1 = h_cone - z + Z_shift[i];
         z_2 = h_cone + H_cylinder[i] + z + Z_shift[i];
-        //translate([x, y, z_1]) sphere(d=3);
-        //translate([x, y, z_2]) sphere(d=3);
+        //translate([x, y, z_1+eps]) sphere(d=1);
+        //translate([x, y, z_2-eps]) sphere(d=1);
         echo(x, y, z_1+eps);
         echo(x, y, z_2-eps);
         }
