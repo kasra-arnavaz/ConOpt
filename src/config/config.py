@@ -30,6 +30,10 @@ class Config:
     sim_duration: float
     sim_segment_duration: float
     sim_dt: float
+    contact_distance: float
+    contact_ke: float
+    contact_kd: float
+    contact_kf: float
     learning_rate: float
     num_training_iterations: int
     device: str

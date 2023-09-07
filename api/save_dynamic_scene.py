@@ -13,6 +13,7 @@ from config.config import Config
 import argparse
 from utils.path import get_next_numbered_path
 from simulation.update_scene import update_scene
+from warp_wrapper.contact_properties import ContactProperties
 
 
 def main(args):
@@ -55,6 +56,10 @@ def main(args):
         device=DEVICE,
     )
 
+    contact_properties = ContactProperties(
+        distance=config.contact_distance, ke=config.contact_ke, kd=config.contact_kd, kf=config.contact_kf
+    )
+
     scene = SceneFactoryFromMsh(
         msh_file=msh_file,
         scad_file=scad_file,
@@ -68,6 +73,7 @@ def main(args):
         object_file=object_file,
         object_properties=object_properties,
         object_transform=object_transform,
+        contact_properties=contact_properties,
         device=DEVICE,
     ).create()
 

@@ -7,6 +7,7 @@ sys.path.append("src")
 from mesh.mesh import Mesh
 from warp.sim import Model
 from warp_wrapper.model_factory import ModelFactory
+from warp_wrapper.contact_properties import ContactProperties
 import copy
 import warp as wp
 
@@ -17,12 +18,18 @@ wp.init()
 class Scene:
     gripper: Mesh = field()
     object: Mesh = field(default=None)
+    contact_properties: ContactProperties = field(default=None)
     device: str = field(default="cuda")
     model: Model = field(init=False)
 
     @model.default
     def _create_model(self):
-        return ModelFactory(soft_mesh=self.gripper, shape_mesh=self.object, device=self.device).create()
+        return ModelFactory(
+            soft_mesh=self.gripper,
+            shape_mesh=self.object,
+            contact_properties=self.contact_properties,
+            device=self.device,
+        ).create()
 
     def __attrs_post_init__(self):
         self._initial_gripper_nodes = copy.deepcopy(self.gripper.nodes)

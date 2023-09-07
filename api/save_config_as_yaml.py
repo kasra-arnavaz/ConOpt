@@ -7,9 +7,9 @@ from config.config import Config
 
 def main():
     config = Config(
-        msh_file="data/caterpillar.msh",
+        msh_file="data/long_caterpillar.msh",
         scad_file="data/caterpillar.scad",
-        scad_parameters="data/caterpillar_scad_params.json",
+        scad_parameters="data/long_caterpillar_scad_params.json",
         ideal_edge_length=0.02,
         gripper_density=1080.0,
         gripper_youngs_modulus=149_000,
@@ -29,7 +29,7 @@ def main():
         cable_damping=0.01,
         object_file="tests/data/cylinder.obj",
         object_density=1080.0,
-        object_translation=[60.0, -60.0, -20.0],
+        object_translation=[-60.0, -60.0, -20.0],
         object_rotation_vector=[
             0.0,
             0.0,
@@ -37,16 +37,20 @@ def main():
         ],
         object_rotation_degrees=0.0,
         object_scale=[0.0015, 0.0015, 0.01],
-        sim_duration=1.0,
+        sim_duration=5.0,
         sim_segment_duration=0.1,
         sim_dt=5e-5,
-        learning_rate=5e-3,
+        contact_distance=0.001,
+        contact_ke=2.0,
+        contact_kd=0.1,
+        contact_kf=2.0,
+        learning_rate=1.0e-5,
         num_training_iterations=200,
         device="cuda",
-        use_checkpoint=False,
-        out_path=".dev/max_grip",
+        use_checkpoint=True,
+        out_path=".dev/contact_params",
     )
-    config.to_yaml(path=".", name="config")
+    config.to_yaml(path=".", name="config_long")
 
 
 if __name__ == "__main__":

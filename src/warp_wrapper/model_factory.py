@@ -6,14 +6,22 @@ import sys
 
 sys.path.append("src")
 from mesh.mesh import Mesh
+from warp_wrapper.contact_properties import ContactProperties
 
 wp.init()
 
 
 class ModelFactory:
-    def __init__(self, soft_mesh: Mesh = None, shape_mesh: Mesh = None, device: str = "cuda"):
+    def __init__(
+        self,
+        soft_mesh: Mesh = None,
+        shape_mesh: Mesh = None,
+        contact_properties: ContactProperties = None,
+        device: str = "cuda",
+    ):
         self._soft_mesh = soft_mesh
         self._shape_mesh = shape_mesh
+        self._contact_properties = contact_properties
         self._device = device
 
     def create(self) -> Model:
@@ -68,11 +76,12 @@ class ModelFactory:
             density=self._shape_mesh.properties.density,
         )
 
-    @staticmethod
-    def _update_model_attributes(model: Model):
+    def _update_model_attributes(self, model: Model):
         model.tri_ke, model.tri_ka, model.tri_kd, model.tri_kb = 0.0, 0.0, 0.0, 0.0
         model.ground = False
         model.gravity = (0.0, -9.8, 0.0)
-        model.soft_contact_distance = 0.001
-        model.soft_contact_ke, model.soft_contact_kd, model.soft_contact_kf = 2.0, 0.1, 2.0
+        model.soft_contact_distance = self._contact_properties.distance
+        model.soft_contact_ke = self._contact_properties.ke
+        model.soft_contact_kd = self._contact_properties.kd
+        model.soft_contact_kf = self._contact_properties.kf
         return model

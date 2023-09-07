@@ -13,6 +13,7 @@ from scene.scene import Scene
 from os import PathLike
 from typing import List
 import torch
+from warp_wrapper.contact_properties import ContactProperties
 from attrs import define
 
 
@@ -30,11 +31,17 @@ class SceneFactoryFromScad:
     object_file: PathLike = None
     object_properties: MeshProperties = None
     object_transform: Transform = None
+    contact_properties: ContactProperties = None
 
     device: str = "cuda"
 
     def create(self) -> Scene:
-        return Scene(gripper=self._gripper(), object=self._object(), device=self.device)
+        return Scene(
+            gripper=self._gripper(),
+            object=self._object(),
+            contact_properties=self.contact_properties,
+            device=self.device,
+        )
 
     def _gripper(self):
         mesh = MeshFactoryFromScad(self._scad(), self.ideal_edge_length, self.device).create()
@@ -80,11 +87,8 @@ class SceneFactoryFromMsh(SceneFactoryFromScad):
     object_file: PathLike = None
     object_properties: MeshProperties = None
     object_transform: Transform = None
-
+    contact_properties: ContactProperties = None
     device: str = "cuda"
-
-    def create(self) -> Scene:
-        return Scene(gripper=self._gripper(), object=self._object(), device=self.device)
 
     def _gripper(self):
         mesh = MeshFactoryFromMsh(self.msh_file, self.device).create()
