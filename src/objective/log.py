@@ -39,3 +39,12 @@ class Log:
             plt.xlabel("# Iterations")
             plt.ylabel(label)
         plt.show()
+
+    @staticmethod
+    def print(path):
+        loss = torch.load(f"{path}/loss.pt")
+        gradient = torch.load(f"{path}/gradient.pt")
+        parameter = torch.load(f"{path}/parameter.pt")
+        print(f"Loss\n{loss}")
+        print(f"Gradinets\n{gradient}")
+        print(f"Parameters\n{parameter}")

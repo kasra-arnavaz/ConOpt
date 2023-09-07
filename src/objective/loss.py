@@ -35,4 +35,4 @@ class MaxGripLoss(Loss):
         loss = torch.zeros(1, requires_grad=True, device=self._device)
         for image in images:
             loss = loss + 0.5 * (image**2).sum()
-        return loss
+        return loss / len(images)

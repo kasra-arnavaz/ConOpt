@@ -7,7 +7,7 @@ from scene.scene_factory import SceneFactoryFromMsh, SceneFactoryFromScad
 from mesh.mesh_properties import MeshProperties
 from simulation.simulation import Simulation
 from point.transform import Transform, get_quaternion
-from rendering.views import ThreeInteriorViews, ThreeExteriorViews
+from rendering.views import ThreeInteriorViews, ThreeExteriorViews, SixInteriorViews
 from rendering.visual import Visual
 from rendering.rendering import (
     ExteriorDepthRendering,
@@ -88,8 +88,8 @@ def main(args):
     sim_properties = SimulationProperties(
         duration=config.sim_duration, segment_duration=config.sim_segment_duration, dt=config.sim_dt, device=DEVICE
     )
-    simulation = Simulation(scene=scene, properties=sim_properties, use_checkpoint=True)
-    views = ThreeInteriorViews(center=scene.object.nodes.position.mean(dim=0), device=DEVICE)
+    simulation = Simulation(scene=scene, properties=sim_properties, use_checkpoint=config.use_checkpoint)
+    views = SixInteriorViews(center=scene.object.nodes.position.mean(dim=0), device=DEVICE)
     rendering = InteriorGapRendering(
         scene=scene,
         views=views,
@@ -98,7 +98,10 @@ def main(args):
     loss = MaxGripLoss(rendering=rendering, device=DEVICE)
     optimizer = GradientDescent(loss, variables, learning_rate=config.learning_rate)
     exterior_view = ThreeExteriorViews(distance=0.5, device=DEVICE)
-    visual = Visual(ExteriorDepthRendering(scene=scene, views=exterior_view, device=DEVICE), path=PATH)
+    visual_ext = Visual(
+        ExteriorDepthRendering(scene=scene, views=exterior_view, device=DEVICE), path=PATH, prefix="ext"
+    )
+    visual_gap = Visual(rendering, path=PATH, prefix="gap")
     log = Log(loss=loss, variables=variables, path=PATH)
     Train(
         simulation,
@@ -107,7 +110,7 @@ def main(args):
         optimizer,
         num_iters=config.num_training_iterations,
         log=log,
-        visual=visual,
+        visuals=[visual_ext, visual_gap],
     ).run(verbose=True)
 
 

@@ -27,11 +27,11 @@ class SceneFactoryFromScad:
     cable_stiffness: float
     cable_damping: float
 
-    object_file: PathLike
-    object_properties: MeshProperties
-    object_transform: Transform
+    object_file: PathLike = None
+    object_properties: MeshProperties = None
+    object_transform: Transform = None
 
-    device: str
+    device: str = "cuda"
 
     def create(self) -> Scene:
         return Scene(gripper=self._gripper(), object=self._object(), device=self.device)
@@ -44,6 +44,8 @@ class SceneFactoryFromScad:
         return mesh
 
     def _object(self):
+        if self.object_file is None:
+            return None
         mesh = MeshFactoryFromObj(self.object_file, device=self.device).create()
         mesh.properties = self.object_properties
         self.object_transform.apply(mesh.nodes)
@@ -75,11 +77,11 @@ class SceneFactoryFromMsh(SceneFactoryFromScad):
     cable_stiffness: float
     cable_damping: float
 
-    object_file: PathLike
-    object_properties: MeshProperties
-    object_transform: Transform
+    object_file: PathLike = None
+    object_properties: MeshProperties = None
+    object_transform: Transform = None
 
-    device: str
+    device: str = "cuda"
 
     def create(self) -> Scene:
         return Scene(gripper=self._gripper(), object=self._object(), device=self.device)

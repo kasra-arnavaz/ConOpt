@@ -10,6 +10,7 @@ from simulation.update_scene import update_scene
 from scene.scene import Scene
 from objective.log import Log
 from rendering.visual import Visual
+from typing import List
 
 
 class Train:
@@ -21,7 +22,7 @@ class Train:
         optimizer: Optimizer,
         num_iters: int,
         log: Log = None,
-        visual: Visual = None,
+        visuals: List[Visual] = None,
     ):
         self._simulation = simulation
         self._scene = scene
@@ -29,7 +30,7 @@ class Train:
         self._optimizer = optimizer
         self._num_iters = num_iters
         self._log = log
-        self._visual = visual
+        self._visuals = visuals
 
     def run(self, verbose: bool = True):
         for self.i in tqdm.tqdm(
@@ -38,9 +39,11 @@ class Train:
             colour="blue",
             disable=verbose,
         ):
-            self._visual.save_images(str(self.i)) if self._save_first_visuals() else None
+            for visual in self._visuals:
+                visual.save_images(str(self.i)) if visual is not None and self.i == 0 else None
             update_scene(scene=self._scene, simulation=self._simulation)
-            self._visual.save_images(str(self.i + 1)) if self._save_visuals() else None
+            for visual in self._visuals:
+                visual.save_images(str(self.i + 1)) if visual is not None else None
             self._loss.backward()
             self._optimizer.step()
             self.print() if verbose else None
@@ -48,14 +51,8 @@ class Train:
             self._optimizer.zero_grad()
             self._scene.reset()
 
-    def _save_visuals(self):
-        return self._visual is not None
-
-    def _save_first_visuals(self):
-        return self._save_visuals() and self.i == 0
-
     def print(self):
-        print(f"Iter: {self.i}")
+        print(f"Iter: {self.i+1}")
         print(f"Loss: {self._loss.get_loss()}")
         print(f"Grad: {self._optimizer._variables.gradients}")
         print(f"Alpha: {self._optimizer._variables.parameters}")

@@ -33,6 +33,7 @@ class Config:
     learning_rate: float
     num_training_iterations: int
     device: str
+    use_checkpoint: bool
     out_path: str
 
     @classmethod

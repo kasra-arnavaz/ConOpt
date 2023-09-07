@@ -12,7 +12,7 @@ hole_pos(Diameter, H_cylinder, h_cone, Num_holes);
 //hole_tubes(Diameter, H_cylinder, h_cone, Num_holes);
 //mold(Diameter, H_cylinder, h_cone);
 
-module hole_pos(Diameter, H_cylinder, h_cone, Num_holes, margin_r=2.5, d_end=10, eps=1.0)
+module hole_pos(Diameter, H_cylinder, h_cone, Num_holes, margin_r=2.5, d_end=10, eps=0.5)
 {
     H_block = calc_H_block(H_cylinder, h_cone);
     Z_shift = calc_z_shift(H_block);
