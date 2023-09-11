@@ -15,6 +15,7 @@ from cable.holes_factory import HolesListFactory
 from cable.cable_factory import CableListFactory
 from cable.barycentric_factory import BarycentricListFactory
 from warp_wrapper.model_factory import ModelFactory
+from warp_wrapper.contact_properties import ContactProperties
 
 
 class TestNodesPositionAndVelocity(unittest.TestCase):
@@ -50,7 +51,8 @@ class TestNodesPositionAndVelocity(unittest.TestCase):
         barycentrics = BarycentricListFactory(mesh=cls.mesh, holes=holes, device="cuda").create()
         fn = NodesForce(barycentrics=barycentrics)
         cls.mesh.nodes.force = fn(holes_forces)
-        cls.model = ModelFactory(soft_mesh=cls.mesh, device="cuda").create()
+        contact_properties = ContactProperties(distance=0.01, ke=2.0, kd=0.1, kf=0.1)
+        cls.model = ModelFactory(soft_mesh=cls.mesh, contact_properties=contact_properties, device="cuda").create()
 
     def tests_if_nodes_position_and_velocity_is_changed(self):
         old_nodes_position, old_nodes_velocity = self.mesh.nodes.position, self.mesh.nodes.velocity

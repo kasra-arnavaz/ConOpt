@@ -4,7 +4,8 @@ import sys
 
 sys.path.append("src")
 from pathlib import Path
-from scene.scene_factory import SceneFactory
+from scene.scene_factory import SceneFactoryFromScad
+from warp_wrapper.contact_properties import ContactProperties
 from mesh.mesh_properties import MeshProperties
 from simulation.simulation import Simulation
 from point.transform import Transform, get_quaternion
@@ -37,7 +38,7 @@ class TestMaxGripLoss(unittest.TestCase):
             youngs_modulus=149_000,
             poissons_ratio=0.49,
             damping_factor=0.4,
-            frozen_bounding_box=[-float("inf"), -0.01, -float("inf"), float("inf"), float("inf"), float("inf")],
+            frozen_bounding_box=[-float("inf"), -0.01, -float("inf"), float("inf"), -float("inf"), float("inf")],
         )
         gripper_transform = Transform(
             rotation=get_quaternion(vector=[1, 0, 0], angle_in_degrees=90), scale=[0.001, 0.001, 0.001], device=device
@@ -53,10 +54,12 @@ class TestMaxGripLoss(unittest.TestCase):
         object_properties = MeshProperties(name="cylinder", density=1080.0)
         object_transform = Transform(translation=[60, -60, -20], scale=[0.0015, 0.0015, 0.01], device=device)
 
-        cls.scene = SceneFactory(
+        contact_properties = ContactProperties(distance=0.001, ke=2.0, kd=0.1, kf=0.1)
+
+        cls.scene = SceneFactoryFromScad(
             scad_file=scad_file,
             scad_parameters=scad_parameters,
-            ideal_edge_lenght=ideal_edge_length,
+            ideal_edge_length=ideal_edge_length,
             gripper_properties=gripper_properties,
             gripper_transform=gripper_transform,
             cable_pull_ratio=cable_pull_ratio,
@@ -65,6 +68,7 @@ class TestMaxGripLoss(unittest.TestCase):
             object_file=object_file,
             object_properties=object_properties,
             object_transform=object_transform,
+            contact_properties=contact_properties,
             device=device,
         ).create()
 
@@ -85,9 +89,11 @@ class TestMaxGripLoss(unittest.TestCase):
         optimizer = GradientDescent(loss, variables, learning_rate=5e-2)
         exterior_view = ThreeExteriorViews(distance=0.5, device=device)
         PATH = ".tmp"
-        visual = Visual(ExteriorDepthRendering(scene=cls.scene, views=exterior_view, device=device), path=PATH)
+        visual = Visual(
+            ExteriorDepthRendering(scene=cls.scene, views=exterior_view, device=device), path=PATH, prefix="ext"
+        )
         log = Log(loss=loss, variables=variables, path=PATH)
-        cls.train = Train(simulation, cls.scene, loss, optimizer, num_iters=3, log=log, visual=visual)
+        cls.train = Train(simulation, cls.scene, loss, optimizer, num_iters=3, log=log, visuals=[visual])
 
     def tests_if_train_runs(self):
         try:

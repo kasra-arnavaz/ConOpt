@@ -6,6 +6,7 @@ sys.path.append("src")
 
 from rendering.rendering import InteriorGapRendering
 from scene.scene import Scene
+from typing import List
 
 
 class Loss(ABC):
@@ -36,3 +37,13 @@ class MaxGripLoss(Loss):
         for image in images:
             loss = loss + 0.5 * (image**2).sum()
         return loss / len(images)
+
+
+class PointTouchLoss(Loss):
+    def __init__(self, scene: Scene):
+        self._scene = scene
+
+    def get_loss(self):
+        output_position = self._scene.gripper.nodes.position[self._scene.gripper_end_effector_idx]
+        target_position = self._scene.object.nodes.position.mean(dim=0)
+        return torch.sum((output_position - target_position) ** 2)

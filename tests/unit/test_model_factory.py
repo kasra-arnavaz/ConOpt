@@ -10,6 +10,7 @@ from mesh.scad import Scad
 from mesh.mesh_factory import MeshFactoryFromScad
 from mesh.mesh_properties import MeshProperties
 from warp.sim import Model
+from warp_wrapper.contact_properties import ContactProperties
 
 
 class TestModelFactory(unittest.TestCase):
@@ -27,7 +28,8 @@ class TestModelFactory(unittest.TestCase):
             damping_factor=0.4,
             frozen_bounding_box=[-np.inf, -np.inf, 0, np.inf, np.inf, 2],
         )
-        cls.model_factory = ModelFactory(soft_mesh=mesh, device="cuda")
+        contact_properties = ContactProperties(distance=0.01, ke=2.0, kd=0.1, kf=0.1)
+        cls.model_factory = ModelFactory(soft_mesh=mesh, contact_properties=contact_properties, device="cuda")
 
     def tests_if_model_factory_creates_a_model_with_a_soft_mesh(self):
         model = self.model_factory.create()

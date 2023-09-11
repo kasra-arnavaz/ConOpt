@@ -21,6 +21,7 @@ class Scene:
     contact_properties: ContactProperties = field(default=None)
     device: str = field(default="cuda")
     model: Model = field(init=False)
+    gripper_end_effector_idx: int = field(init=False)
 
     @model.default
     def _create_model(self):
@@ -40,3 +41,7 @@ class Scene:
         self.gripper.nodes = copy.deepcopy(self._initial_gripper_nodes)
         self.model.particle_q = self._initial_partilce_q
         self.model.particle_qd = self._initial_partilce_qd
+
+    @gripper_end_effector_idx.default
+    def _gripper_end_effector_idx(self):
+        return self.gripper.nodes.position[:, 1].argmin()  # assumes gripper is facing down
