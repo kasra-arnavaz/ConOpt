@@ -16,12 +16,12 @@ class Simulation(torch.nn.Module):
         super().__init__()
         self.free_memory = []
         self.properties = properties
-        holes = [cable.holes for cable in scene.gripper.cables]
-        self._barycentrics = BarycentricListFactory(scene.gripper, holes, properties.device).create()
+        holes = [cable.holes for cable in scene.robot.cables]
+        self._barycentrics = BarycentricListFactory(scene.robot, holes, properties.device).create()
         self._use_checkpoint = use_checkpoint
         # functions
         self._holes_position_and_velocity = HolesPositionAndVelocity(barycentrics=self._barycentrics)
-        self._holes_force = HolesForce(cables=scene.gripper.cables, device=properties.device)
+        self._holes_force = HolesForce(cables=scene.robot.cables, device=properties.device)
         self._nodes_force = NodesForce(barycentrics=self._barycentrics)
         self._nodes_position_and_velocity = NodesPositionAndVelocity(model=scene.model, dt=properties.dt)
 
