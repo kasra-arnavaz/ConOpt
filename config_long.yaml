@@ -11,7 +11,7 @@ gripper_frozen_bounding_box:
 - -0.01
 - -.inf
 - .inf
-- .inf
+- -.inf
 - .inf
 gripper_translation:
 - 0.0
@@ -55,7 +55,7 @@ sim_dt: 5.0e-05
 contact_distance: 0.001
 contact_ke: 2.0
 contact_kd: 0.1
-contact_kf: 1.0
+contact_kf: 0.1
 learning_rate: 1.0e-05
 num_training_iterations: 100
 device: cuda

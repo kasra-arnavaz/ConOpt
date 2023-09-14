@@ -100,7 +100,7 @@ def main(args):
         views=views,
         device=DEVICE,
     )
-    loss = MaxGripLoss(rendering=rendering, device=DEVICE)
+    loss = PointTouchLoss(scene=scene)
     optimizer = GradientDescent(loss, variables, learning_rate=config.learning_rate)
     exterior_view = ThreeExteriorViews(distance=0.5, device=DEVICE)
     visual_ext = Visual(
