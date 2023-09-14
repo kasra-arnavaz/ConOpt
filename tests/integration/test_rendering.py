@@ -10,7 +10,7 @@ from point.transform import Transform, get_quaternion
 from rendering.views import SixExteriorViews, SixInteriorViews
 from rendering.rendering import ExteriorDepthRendering, InteriorGapRendering, InteriorContactRendering
 from simulation.simulation_properties import SimulationProperties
-from scene.scene_factory import SceneFactoryFromScad
+from scene.scene_factory import SceneFactoryFromScad, SceneFactoryFromMsh
 from warp_wrapper.contact_properties import ContactProperties
 from simulation.update_scene import update_scene
 
@@ -23,8 +23,9 @@ class TestRenderingVisualization(unittest.TestCase):
     def setUpClass(cls):
         cls.device = "cuda"
         # gripper
-        scad_file = Path("tests/data/caterpillar.scad")
-        scad_parameters = Path("tests/data/caterpillar_scad_params.json")
+        msh_file = Path("data/long_caterpillar.msh")
+        scad_file = Path("data/caterpillar.scad")
+        scad_parameters = Path("data/long_caterpillar_scad_params.json")
         ideal_edge_length = 0.02
         gripper_properties = MeshProperties(
             name="caterpillar",
@@ -52,7 +53,8 @@ class TestRenderingVisualization(unittest.TestCase):
 
         contact_properties = ContactProperties(distance=0.001, ke=2.0, kd=0.1, kf=0.1)
 
-        cls.scene = SceneFactoryFromScad(
+        cls.scene = SceneFactoryFromMsh(
+            msh_file=msh_file,
             scad_file=scad_file,
             scad_parameters=scad_parameters,
             ideal_edge_length=ideal_edge_length,
