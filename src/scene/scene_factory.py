@@ -9,53 +9,41 @@ from mesh.mesh_properties import MeshProperties
 from point.transform import Transform
 from cable.holes_factory import HolesListFactory
 from cable.cable_factory import CableListFactory
-from scene.scene import Scene
+from scene.scene import GripperScene, TouchScene, Scene
 from os import PathLike
 from typing import List
 import torch
 from warp_wrapper.contact_properties import ContactProperties
 from attrs import define
+from abc import ABC, abstractmethod
 
 
 @define
-class SceneFactoryFromScad:
+class SceneFactory(ABC):
     scad_file: PathLike
     scad_parameters: PathLike
     ideal_edge_length: float
-    gripper_properties: MeshProperties
-    gripper_transform: Transform
+    robot_properties: MeshProperties
+    robot_transform: Transform
     cable_pull_ratio: List[torch.Tensor]
     cable_stiffness: float
     cable_damping: float
-
-    object_file: PathLike = None
-    object_properties: MeshProperties = None
-    object_transform: Transform = None
-    contact_properties: ContactProperties = None
-
     device: str = "cuda"
+    msh_file: PathLike = None
+    make_new_robot: bool = True
 
+    @abstractmethod
     def create(self) -> Scene:
-        return Scene(
-            gripper=self._gripper(),
-            object=self._object(),
-            contact_properties=self.contact_properties,
-            device=self.device,
-        )
+        pass
 
-    def _gripper(self):
-        mesh = MeshFactoryFromScad(self._scad(), self.ideal_edge_length, self.device).create()
-        self.gripper_transform.apply(mesh.nodes)
-        mesh.properties = self.gripper_properties
+    def _robot(self):
+        if self.make_new_robot:
+            mesh = MeshFactoryFromScad(self._scad(), self.ideal_edge_length, self.device).create()
+        else:
+            mesh = MeshFactoryFromMsh(self.msh_file, self.device).create()
+        self.robot_transform.apply(mesh.nodes)
+        mesh.properties = self.robot_properties
         mesh.cables = self._cables()
-        return mesh
-
-    def _object(self):
-        if self.object_file is None:
-            return None
-        mesh = MeshFactoryFromObj(self.object_file, device=self.device).create()
-        mesh.properties = self.object_properties
-        self.object_transform.apply(mesh.nodes)
         return mesh
 
     def _scad(self):
@@ -68,31 +56,39 @@ class SceneFactoryFromScad:
         holes_position = HolesInitialPosition(self._scad()).get()
         holes = HolesListFactory(holes_position, device=self.device).create()
         for hole in holes:
-            self.gripper_transform.apply(hole)
+            self.robot_transform.apply(hole)
         return holes
-
-
+    
 @define
-class SceneFactoryFromMsh(SceneFactoryFromScad):
-    msh_file: PathLike
-    scad_file: PathLike  # are still needed to compute hole_positions
+class GripperSceneFactory(SceneFactory):
+    scad_file: PathLike
     scad_parameters: PathLike
     ideal_edge_length: float
-    gripper_properties: MeshProperties
-    gripper_transform: Transform
+    robot_properties: MeshProperties
+    robot_transform: Transform
     cable_pull_ratio: List[torch.Tensor]
     cable_stiffness: float
     cable_damping: float
-
-    object_file: PathLike = None
-    object_properties: MeshProperties = None
-    object_transform: Transform = None
-    contact_properties: ContactProperties = None
+    object_file: PathLike
+    object_properties: MeshProperties
+    object_transform: Transform
+    contact_properties: ContactProperties
     device: str = "cuda"
+    msh_file: PathLike = None
+    make_new_robot: bool = True
 
-    def _gripper(self):
-        mesh = MeshFactoryFromMsh(self.msh_file, self.device).create()
-        self.gripper_transform.apply(mesh.nodes)
-        mesh.properties = self.gripper_properties
-        mesh.cables = self._cables()
+    def create(self) -> GripperScene:
+        return GripperScene(
+            robot=self._robot(),
+            object=self._object(),
+            contact_properties=self.contact_properties,
+            device=self.device,
+        )
+
+    def _object(self):
+        if self.object_file is None:
+            return None
+        mesh = MeshFactoryFromObj(self.object_file, device=self.device).create()
+        mesh.properties = self.object_properties
+        self.object_transform.apply(mesh.nodes)
         return mesh
