@@ -16,7 +16,7 @@ wp.init()
 
 
 @define(slots=False)
-class Scene:
+class Scene(ABC):
     robot: Mesh = field()
     device: str = field(default="cuda")
     model: Model = field(init=False)
@@ -25,6 +25,9 @@ class Scene:
     @abstractmethod
     def _create_model(self):
         pass
+
+    def all_meshes(self) -> List[Mesh]:
+        return [self.robot]
 
     def __attrs_post_init__(self):
         self._initial_robot_nodes = copy.deepcopy(self.robot.nodes)
@@ -53,6 +56,9 @@ class GripperScene(Scene):
             contact_properties=self.contact_properties,
             device=self.device,
         ).create()
+    
+    def all_meshes(self) -> List[Mesh]:
+        return [self.robot, self.object]
 
 
 @define
@@ -65,17 +71,23 @@ class TouchScene(Scene):
     model: Model = field(init=False)
     robot_end_effector_idx: int = field(init=False)
 
+    def all_meshes(self):
+        return self.robot + self._shape_meshes()
+
     @model.default
     def _create_model(self):
-        shape_meshes = self.obstacles.copy() if self.obstacles is not None else []
-        shape_meshes.append(self.object)
         return ModelFactory(
             soft_mesh=self.robot,
-            shape_meshes=shape_meshes,
+            shape_meshes=self._shape_meshes(),
             contact_properties=self.contact_properties,
             device=self.device,
         ).create()
-
+    
+    def _shape_meshes(self):
+        shape_meshes = self.obstacles.copy() if self.obstacles is not None else []
+        shape_meshes.append(self.object)
+        return shape_meshes
+    
     @robot_end_effector_idx.default
     def _robot_end_effector_idx(self):
         return self.robot.nodes.position[:, 1].argmin()  # assumes robot is facing down

@@ -9,15 +9,15 @@ class Config:
     scad_file: str
     scad_parameters: str
     ideal_edge_length: float
-    gripper_density: float
-    gripper_youngs_modulus: float
-    gripper_poissons_ratio: float
-    gripper_damping_factor: float
-    gripper_frozen_bounding_box: list
-    gripper_translation: list
-    gripper_rotation_vector: list
-    gripper_rotation_degrees: float
-    gripper_scale: list
+    robot_density: float
+    robot_youngs_modulus: float
+    robot_poissons_ratio: float
+    robot_damping_factor: float
+    robot_frozen_bounding_box: list
+    robot_translation: list
+    robot_rotation_vector: list
+    robot_rotation_degrees: float
+    robot_scale: list
     cable_pull_ratio: list
     cable_stiffness: float
     cable_damping: float

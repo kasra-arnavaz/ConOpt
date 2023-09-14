@@ -9,8 +9,8 @@ import tqdm
 
 
 def update_scene_one_segment(scene: Scene, simulation: Simulation) -> None:
-    scene.gripper.nodes.position, scene.gripper.nodes.velocity = simulation(
-        scene.gripper.nodes.position, scene.gripper.nodes.velocity
+    scene.robot.nodes.position, scene.robot.nodes.velocity = simulation(
+        scene.robot.nodes.position, scene.robot.nodes.velocity
     )
 
 

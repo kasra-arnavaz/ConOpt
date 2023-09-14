@@ -20,7 +20,7 @@ class SceneViewer:
     def record(self, time: float = 0.0):
         with wp.ScopedTimer("render", print=False):
             self.usd.begin_frame(time)
-            for mesh in [self._scene.gripper, self._scene.object]:
+            for mesh in self._scene.all_meshes():
                 self.usd.render_mesh(
                     name=mesh.properties.name,
                     points=mesh.nodes.position.detach().cpu().numpy(),

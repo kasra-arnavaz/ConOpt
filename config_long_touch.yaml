@@ -2,27 +2,27 @@ msh_file: data/long_caterpillar.msh
 scad_file: data/caterpillar.scad
 scad_parameters: data/long_caterpillar_scad_params.json
 ideal_edge_length: 0.02
-gripper_density: 1080.0
-gripper_youngs_modulus: 149000
-gripper_poissons_ratio: 0.4
-gripper_damping_factor: 0.4
-gripper_frozen_bounding_box:
+robot_density: 1080.0
+robot_youngs_modulus: 149000
+robot_poissons_ratio: 0.4
+robot_damping_factor: 0.4
+robot_frozen_bounding_box:
 - -.inf
 - -0.01
 - -.inf
 - .inf
 - -.inf
 - .inf
-gripper_translation:
+robot_translation:
 - 0.0
 - 0.0
 - 0.0
-gripper_rotation_vector:
+robot_rotation_vector:
 - 1.0
 - 0.0
 - 0.0
-gripper_rotation_degrees: 90.0
-gripper_scale:
+robot_rotation_degrees: 90.0
+robot_scale:
 - 0.001
 - 0.001
 - 0.001
