@@ -10,7 +10,7 @@ from point.transform import Transform, get_quaternion
 from rendering.views import SixExteriorViews, SixInteriorViews
 from rendering.rendering import ExteriorDepthRendering, InteriorGapRendering, InteriorContactRendering
 from simulation.simulation_properties import SimulationProperties
-from scene.scene_factory import SceneFactoryFromScad, SceneFactoryFromMsh
+from scene.scene_factory import GripperSceneFactory
 from warp_wrapper.contact_properties import ContactProperties
 from simulation.update_scene import update_scene
 
@@ -22,12 +22,12 @@ class TestRenderingVisualization(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.device = "cuda"
-        # gripper
+        # robot
         msh_file = Path("data/long_caterpillar.msh")
         scad_file = Path("data/caterpillar.scad")
         scad_parameters = Path("data/long_caterpillar_scad_params.json")
         ideal_edge_length = 0.02
-        gripper_properties = MeshProperties(
+        robot_properties = MeshProperties(
             name="caterpillar",
             density=1080.0,
             youngs_modulus=149_000,
@@ -35,7 +35,7 @@ class TestRenderingVisualization(unittest.TestCase):
             damping_factor=0.4,
             frozen_bounding_box=[-float("inf"), -0.01, -float("inf"), float("inf"), -float("inf"), float("inf")],
         )
-        gripper_transform = Transform(
+        robot_transform = Transform(
             rotation=get_quaternion(vector=[1, 0, 0], angle_in_degrees=90),
             scale=[0.001, 0.001, 0.001],
             device=cls.device,
@@ -53,13 +53,13 @@ class TestRenderingVisualization(unittest.TestCase):
 
         contact_properties = ContactProperties(distance=0.001, ke=2.0, kd=0.1, kf=0.1)
 
-        cls.scene = SceneFactoryFromMsh(
+        cls.scene = GripperSceneFactory(
             msh_file=msh_file,
             scad_file=scad_file,
             scad_parameters=scad_parameters,
             ideal_edge_length=ideal_edge_length,
-            gripper_properties=gripper_properties,
-            gripper_transform=gripper_transform,
+            robot_properties=robot_properties,
+            robot_transform=robot_transform,
             cable_pull_ratio=cable_pull_ratio,
             cable_stiffness=cable_stiffness,
             cable_damping=cable_damping,
@@ -68,6 +68,7 @@ class TestRenderingVisualization(unittest.TestCase):
             object_transform=object_transform,
             contact_properties=contact_properties,
             device=cls.device,
+            make_new_robot=False
         ).create()
         sim_properties = SimulationProperties(
             duration=0.02, segment_duration=0.01, dt=2.1701388888888886e-05, device=cls.device
@@ -75,7 +76,7 @@ class TestRenderingVisualization(unittest.TestCase):
         simulation = Simulation(scene=cls.scene, properties=sim_properties)
         update_scene(scene=cls.scene, simulation=simulation)
 
-    def tests_if_exterior_depth_rendering_of_gripper_runs_given_six_views(self):
+    def tests_if_exterior_depth_rendering_of_robot_runs_given_six_views(self):
         views = SixExteriorViews(distance=0.5, device=self.device)
         rendering = ExteriorDepthRendering(scene=self.scene, views=views, device=self.device)
         try:

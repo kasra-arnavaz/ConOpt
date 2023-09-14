@@ -24,10 +24,10 @@ class DepthRendering(ABC):
         pass
 
     def _get_meshes(self):
-        gripper = self._scene.gripper
+        robot = self._scene.robot
         object = self._scene.object
         meshes = []
-        for mesh in [gripper, object]:
+        for mesh in [robot, object]:
             meshes.append(structures.Meshes(mesh.nodes.position[None], mesh.elements.triangles[None]))
         return structures.join_meshes_as_batch(meshes)
 
@@ -100,7 +100,7 @@ class InteriorContactRendering(InteriorDepthRendering):
             distance = zbuf[1] - zbuf[0]
             mask_contact = distance >= 0
             mask_object = zbuf[1] > -1.0
-            mask_gripper = zbuf[0] > -1.0
-            mask = mask_contact * mask_gripper * mask_object * 1.0
+            mask_robot = zbuf[0] > -1.0
+            mask = mask_contact * mask_robot * mask_object * 1.0
             contacts.append(mask)
         return contacts

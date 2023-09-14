@@ -22,6 +22,7 @@ class TestSceneViewer(unittest.TestCase):
     def setUpClass(cls):
         device = "cuda"
         # robot
+        msh_file = Path("data/long_caterpillar.msh")
         scad_file = Path("tests/data/caterpillar.scad")
         scad_parameters = Path("tests/data/caterpillar_scad_params.json")
         ideal_edge_length = 0.02
@@ -50,6 +51,7 @@ class TestSceneViewer(unittest.TestCase):
         contact_properties = ContactProperties(distance=0.001, ke=2.0, kd=0.1, kf=0.1)
 
         cls.scene = GripperSceneFactory(
+            msh_file=msh_file,
             scad_file=scad_file,
             scad_parameters=scad_parameters,
             ideal_edge_length=ideal_edge_length,
@@ -63,6 +65,7 @@ class TestSceneViewer(unittest.TestCase):
             object_transform=object_transform,
             contact_properties=contact_properties,
             device=device,
+            make_new_robot=False
         ).create()
 
         sim_properties = SimulationProperties(

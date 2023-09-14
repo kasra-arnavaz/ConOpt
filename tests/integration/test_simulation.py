@@ -5,7 +5,7 @@ import sys
 sys.path.append("src")
 from pathlib import Path
 from simulation.simulation import Simulation
-from scene.scene_factory import SceneFactoryFromScad
+from scene.scene_factory import GripperSceneFactory
 from warp_wrapper.contact_properties import ContactProperties
 from point.transform import Transform, get_quaternion
 from mesh.mesh_properties import MeshProperties
@@ -20,11 +20,12 @@ class TestSimulation(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         device = "cuda"
-        # gripper
+        # robot
+        msh_file = Path("data/long_caterpillar.msh")
         scad_file = Path("tests/data/caterpillar.scad")
         scad_parameters = Path("tests/data/caterpillar_scad_params.json")
         ideal_edge_length = 0.02
-        gripper_properties = MeshProperties(
+        robot_properties = MeshProperties(
             name="caterpillar",
             density=1080.0,
             youngs_modulus=149_000,
@@ -32,7 +33,7 @@ class TestSimulation(unittest.TestCase):
             damping_factor=0.4,
             frozen_bounding_box=[-float("inf"), -0.01, -float("inf"), float("inf"), -float("inf"), float("inf")],
         )
-        gripper_transform = Transform(
+        robot_transform = Transform(
             rotation=get_quaternion(vector=[1, 0, 0], angle_in_degrees=90), scale=[0.001, 0.001, 0.001], device=device
         )
         cable_pull_ratio = [
@@ -47,12 +48,13 @@ class TestSimulation(unittest.TestCase):
         object_transform = Transform(translation=[60, -60, -20], scale=[0.0015, 0.0015, 0.01], device=device)
         contact_properties = ContactProperties(distance=0.001, ke=2.0, kd=0.1, kf=0.1)
 
-        cls.scene = SceneFactoryFromScad(
+        cls.scene = GripperSceneFactory(
+            msh_file=msh_file,
             scad_file=scad_file,
             scad_parameters=scad_parameters,
             ideal_edge_length=ideal_edge_length,
-            gripper_properties=gripper_properties,
-            gripper_transform=gripper_transform,
+            robot_properties=robot_properties,
+            robot_transform=robot_transform,
             cable_pull_ratio=cable_pull_ratio,
             cable_stiffness=cable_stiffness,
             cable_damping=cable_damping,
@@ -61,6 +63,7 @@ class TestSimulation(unittest.TestCase):
             object_transform=object_transform,
             contact_properties=contact_properties,
             device=device,
+            make_new_robot=False
         ).create()
 
         sim_properties = SimulationProperties(
@@ -74,9 +77,9 @@ class TestSimulation(unittest.TestCase):
         self.assertTrue(max(memory) - min(memory) <= 0.1)
 
     def tests_if_a_gradients_of_pull_ratio_are_not_none_given_a_loss(self):
-        loss = self.scene.gripper.nodes.position.sum().requires_grad_()
+        loss = self.scene.robot.nodes.position.sum().requires_grad_()
         loss.backward()
-        for cable in self.scene.gripper.cables:
+        for cable in self.scene.robot.cables:
             self.assertIsNotNone(cable.pull_ratio.grad)
 
 

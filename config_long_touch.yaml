@@ -11,7 +11,7 @@ robot_frozen_bounding_box:
 - -0.01
 - -.inf
 - .inf
-- -.inf
+- .inf
 - .inf
 robot_translation:
 - 0.0
@@ -56,7 +56,7 @@ contact_distance: 0.0
 contact_ke: 2.0
 contact_kd: 0.1
 contact_kf: 0.1
-learning_rate: 1.0e-04
+learning_rate: 5.0e-03
 num_training_iterations: 200
 device: cuda
 use_checkpoint: true

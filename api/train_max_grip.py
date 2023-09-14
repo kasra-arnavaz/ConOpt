@@ -3,7 +3,7 @@ import sys
 
 sys.path.append("src")
 from pathlib import Path
-from scene.scene_factory import SceneFactoryFromMsh, SceneFactoryFromScad
+from scene.scene_factory import GripperSceneFactory
 from mesh.mesh_properties import MeshProperties
 from simulation.simulation import Simulation
 from point.transform import Transform, get_quaternion
@@ -32,25 +32,25 @@ def main(args):
     PATH = get_next_numbered_path(config.out_path)
     config.to_yaml(path=PATH)
 
-    # gripper
+    # robot
     msh_file = Path(config.msh_file)
     scad_file = Path(config.scad_file)
     scad_parameters = Path(config.scad_parameters)
     ideal_edge_length = config.ideal_edge_length
-    gripper_properties = MeshProperties(
-        name="gripper",
-        density=config.gripper_density,
-        youngs_modulus=config.gripper_youngs_modulus,
-        poissons_ratio=config.gripper_poissons_ratio,
-        damping_factor=config.gripper_damping_factor,
-        frozen_bounding_box=config.gripper_frozen_bounding_box,
+    robot_properties = MeshProperties(
+        name="robot",
+        density=config.robot_density,
+        youngs_modulus=config.robot_youngs_modulus,
+        poissons_ratio=config.robot_poissons_ratio,
+        damping_factor=config.robot_damping_factor,
+        frozen_bounding_box=config.robot_frozen_bounding_box,
     )
-    gripper_transform = Transform(
-        translation=config.gripper_translation,
+    robot_transform = Transform(
+        translation=config.robot_translation,
         rotation=get_quaternion(
-            vector=config.gripper_rotation_vector, angle_in_degrees=config.gripper_rotation_degrees
+            vector=config.robot_rotation_vector, angle_in_degrees=config.robot_rotation_degrees
         ),
-        scale=config.gripper_scale,
+        scale=config.robot_scale,
         device=DEVICE,
     )
     cable_pull_ratio = [torch.tensor(pull, device=DEVICE) for pull in config.cable_pull_ratio]
@@ -70,13 +70,13 @@ def main(args):
         distance=config.contact_distance, ke=config.contact_ke, kd=config.contact_kd, kf=config.contact_kf
     )
 
-    scene = SceneFactoryFromMsh(
+    scene = GripperSceneFactory(
         msh_file=msh_file,
         scad_file=scad_file,
         scad_parameters=scad_parameters,
         ideal_edge_length=ideal_edge_length,
-        gripper_properties=gripper_properties,
-        gripper_transform=gripper_transform,
+        robot_properties=robot_properties,
+        robot_transform=robot_transform,
         cable_pull_ratio=cable_pull_ratio,
         cable_stiffness=cable_stiffness,
         cable_damping=cable_damping,
@@ -85,10 +85,11 @@ def main(args):
         object_transform=object_transform,
         contact_properties=contact_properties,
         device=DEVICE,
+        make_new_robot=False
     ).create()
 
     variables = Variables()
-    for cable in scene.gripper.cables:
+    for cable in scene.robot.cables:
         variables.add_parameter(cable.pull_ratio)
     sim_properties = SimulationProperties(
         duration=config.sim_duration, segment_duration=config.sim_segment_duration, dt=config.sim_dt, device=DEVICE

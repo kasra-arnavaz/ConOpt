@@ -23,7 +23,7 @@ class ToyLoss(Loss):
         self._scene = scene
 
     def get_loss(self):
-        return self._scene.gripper.nodes.position.sum()
+        return self._scene.robot.nodes.position.sum()
 
 
 class MaxGripLoss(Loss):
@@ -44,6 +44,6 @@ class PointTouchLoss(Loss):
         self._scene = scene
 
     def get_loss(self):
-        output_position = self._scene.gripper.nodes.position[self._scene.gripper_end_effector_idx]
+        output_position = self._scene.robot.nodes.position[self._scene.robot_end_effector_idx]
         target_position = self._scene.object.nodes.position.mean(dim=0)
         return torch.sum((output_position - target_position) ** 2)

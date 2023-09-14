@@ -72,7 +72,7 @@ class TouchScene(Scene):
     robot_end_effector_idx: int = field(init=False)
 
     def all_meshes(self):
-        return self.robot + self._shape_meshes()
+        return [self.robot] + self._shape_meshes()
 
     @model.default
     def _create_model(self):
