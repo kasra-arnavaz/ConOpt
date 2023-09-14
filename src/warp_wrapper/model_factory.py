@@ -6,6 +6,7 @@ import sys
 
 sys.path.append("src")
 from mesh.mesh import Mesh
+from typing import List
 from warp_wrapper.contact_properties import ContactProperties
 
 wp.init()
@@ -15,21 +16,22 @@ class ModelFactory:
     def __init__(
         self,
         soft_mesh: Mesh = None,
-        shape_mesh: Mesh = None,
+        shape_meshes: List[Mesh] = None,
         contact_properties: ContactProperties = None,
         device: str = "cuda",
     ):
         self._soft_mesh = soft_mesh
-        self._shape_mesh = shape_mesh
+        self._shape_meshes = shape_meshes
         self._contact_properties = contact_properties
         self._device = device
 
     def create(self) -> Model:
         builder: ModelBuilder = wp.sim.ModelBuilder()
         self._add_soft_mesh(builder) if self._soft_mesh is not None else None
-        self._add_shape_mesh(builder) if self._shape_mesh is not None else None
+        self._add_shape_meshes(builder) if self._shape_meshes is not None else None
         model = builder.finalize(self._device)
         model = self._update_model_attributes(model)
+        model = self._update_model_contact_properties(model)
         return model
 
     def _add_soft_mesh(self, builder: ModelBuilder):
@@ -66,20 +68,26 @@ class ModelFactory:
     def _set_soft_mesh_triangles(self, builder: ModelBuilder):
         self._soft_mesh.elements.triangles = torch.tensor(builder.tri_indices, device=self._device, dtype=torch.int32)
 
-    def _add_shape_mesh(self, builder: ModelBuilder):
-        builder.add_shape_mesh(
-            body=-1,
-            mesh=wp.sim.Mesh(
-                self._shape_mesh.nodes.position.detach().cpu().numpy(),
-                self._shape_mesh.elements.triangles.cpu().numpy().reshape(-1),
-            ),
-            density=self._shape_mesh.properties.density,
-        )
+    def _add_shape_meshes(self, builder: ModelBuilder):
+        for shape_mesh in self._shape_meshes:
+            builder.add_shape_mesh(
+                body=-1,
+                mesh=wp.sim.Mesh(
+                    shape_mesh.nodes.position.detach().cpu().numpy(),
+                    shape_mesh.elements.triangles.cpu().numpy().reshape(-1),
+                ),
+                density=shape_mesh.properties.density,
+            )
 
     def _update_model_attributes(self, model: Model):
         model.tri_ke, model.tri_ka, model.tri_kd, model.tri_kb = 0.0, 0.0, 0.0, 0.0
         model.ground = False
         model.gravity = (0.0, -9.8, 0.0)
+        return model
+
+    def _update_model_contact_properties(self, model: Model):
+        if self._contact_properties is None:
+            return model
         model.soft_contact_distance = self._contact_properties.distance
         model.soft_contact_ke = self._contact_properties.ke
         model.soft_contact_kd = self._contact_properties.kd
