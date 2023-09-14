@@ -13,6 +13,7 @@ from scene.scene import GripperScene, TouchScene, Scene
 from os import PathLike
 from typing import List
 import torch
+from mesh.mesh import Mesh
 from warp_wrapper.contact_properties import ContactProperties
 from attrs import define
 from abc import ABC, abstractmethod
@@ -59,6 +60,12 @@ class SceneFactory(ABC):
             self.robot_transform.apply(hole)
         return holes
     
+    @staticmethod
+    def _create_obj_mesh(file: PathLike, properties: MeshProperties, transform: Transform, device: str) -> Mesh:
+        mesh = MeshFactoryFromObj(file, device=device).create()
+        mesh.properties = properties
+        transform.apply(mesh.nodes)
+        return mesh
 @define
 class GripperSceneFactory(SceneFactory):
     scad_file: PathLike
@@ -86,9 +93,41 @@ class GripperSceneFactory(SceneFactory):
         )
 
     def _object(self):
-        if self.object_file is None:
+        return self._create_obj_mesh(self.object_file, self.object_properties, self.object_transform, self.device)
+    
+@define
+class TouchSceneFactory(GripperSceneFactory):
+    scad_file: PathLike
+    scad_parameters: PathLike
+    ideal_edge_length: float
+    robot_properties: MeshProperties
+    robot_transform: Transform
+    cable_pull_ratio: List[torch.Tensor]
+    cable_stiffness: float
+    cable_damping: float
+    object_file: PathLike
+    object_properties: MeshProperties
+    object_transform: Transform
+    obstacle_files: List[PathLike] = None
+    obstacle_properties: List[MeshProperties] = None
+    obstacle_transforms: List[Transform] = None
+    device: str = "cuda"
+    msh_file: PathLike = None
+    make_new_robot: bool = True
+
+    def create(self) -> TouchScene:
+        return TouchScene(
+            robot=self._robot(),
+            object=self._object(),
+            obstacles=self._obstacles(),
+            contact_properties=self.contact_properties,
+            device=self.device,
+        )
+    
+    def _obstacles(self) -> List[Mesh]:
+        if self.obstacle_files is None:
             return None
-        mesh = MeshFactoryFromObj(self.object_file, device=self.device).create()
-        mesh.properties = self.object_properties
-        self.object_transform.apply(mesh.nodes)
-        return mesh
+        obstacles = []
+        for file, properties, transform in zip(self.obstacle_files, self.obstacle_properties, self.obstacle_transforms):
+            obstacles.append(self._create_obj_mesh(file, properties, transform, self.device))
+        return obstacles

@@ -58,7 +58,7 @@ class GripperScene(Scene):
 @define
 class TouchScene(Scene):
     robot: Mesh = field()
-    target: Mesh = field()
+    object: Mesh = field()
     obstacles: List[Mesh] = field(default=None)
     contact_properties: ContactProperties = field(default=None)
     device: str = field(default="cuda")
@@ -67,8 +67,8 @@ class TouchScene(Scene):
 
     @model.default
     def _create_model(self):
-        shape_meshes = self.obstacles.copy()
-        shape_meshes.append(self.target)
+        shape_meshes = self.obstacles.copy() if self.obstacles is not None else []
+        shape_meshes.append(self.object)
         return ModelFactory(
             soft_mesh=self.robot,
             shape_meshes=shape_meshes,
