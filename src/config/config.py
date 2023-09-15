@@ -39,6 +39,12 @@ class Config:
     device: str
     use_checkpoint: bool
     out_path: str
+    obstacle_file: list = None
+    obstacle_density: list = None
+    obstacle_translation: list = None
+    obstacle_rotation_vector: list = None
+    obstacle_rotation_degrees: list = None
+    obstacle_scale: list = None
 
     @classmethod
     def from_dict(cls, d):

@@ -55,6 +55,15 @@ def main(args):
         scale=config.object_scale,
         device=DEVICE,
     )
+    # obstacle
+    try:
+        obstacle_files = [Path(file) for file in config.obstacle_file]
+        obstacle_properties = [MeshProperties(name=f"obstacle_{i}", density=density) for i, density in enumerate(config.obstacle_density)]
+        obstacle_transforms = []
+        for t, rv, rd, s in zip(config.obstacle_translation, config.obstacle_rotation_vector, config.obstacle_rotation_degrees, config.obstacle_scale):
+            obstacle_transforms.append(Transform(translation=t, rotation=get_quaternion(vector=rv, angle_in_degrees=rd), scale=s))
+    except:
+        obstacle_files, obstacle_properties, obstacle_transforms = None, None, None
 
     contact_properties = ContactProperties(
         distance=config.contact_distance, ke=config.contact_ke, kd=config.contact_kd, kf=config.contact_kf
@@ -73,6 +82,9 @@ def main(args):
         object_file=object_file,
         object_properties=object_properties,
         object_transform=object_transform,
+        obstacle_files=obstacle_files,
+        obstacle_properties=obstacle_properties,
+        obstacle_transforms=obstacle_transforms,
         contact_properties=contact_properties,
         device=DEVICE,
         make_new_robot=False

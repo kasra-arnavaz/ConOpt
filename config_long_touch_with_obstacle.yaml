@@ -1,6 +1,6 @@
-msh_file: data/caterpillar.msh
+msh_file: data/long_caterpillar.msh
 scad_file: data/caterpillar.scad
-scad_parameters: data/caterpillar_scad_params.json
+scad_parameters: data/long_caterpillar_scad_params.json
 ideal_edge_length: 0.02
 robot_density: 1080.0
 robot_youngs_modulus: 149000
@@ -27,35 +27,67 @@ robot_scale:
 - 0.001
 - 0.001
 cable_pull_ratio:
-- 0.5
+- 0.0
+- 0.0
+- 0.0
 - 0.0
 - 0.0
 cable_stiffness: 100
 cable_damping: 0.01
-object_file: tests/data/cylinder.obj
+object_file: data/sphere.obj
 object_density: 1080.0
 object_translation:
-- 60.0
-- -60.0
 - -20.0
+- -20.0
+- 0.0
 object_rotation_vector:
 - 0.0
 - 0.0
 - 1.0
 object_rotation_degrees: 0.0
 object_scale:
-- 0.0015
-- 0.0015
 - 0.01
+- 0.01
+- 0.01
+sim_duration: 3.0
+sim_segment_duration: 0.1
+sim_dt: 5.0e-05
 contact_distance: 0.0
 contact_ke: 2.0
 contact_kd: 0.1
 contact_kf: 0.1
-sim_duration: 1.0
-sim_segment_duration: 0.1
-sim_dt: 5.0e-05
-learning_rate: 1.0e-3
-num_training_iterations: 100
+learning_rate: 5.0e-03
+num_training_iterations: 200
 device: cuda
 use_checkpoint: true
-out_path: .dev/short
+out_path: .dev/point_touch
+obstacle_file:
+- tests/data/cylinder.obj
+- tests/data/cylinder.obj
+obstacle_density:
+- 1080.0
+- 1080.0
+obstacle_translation:
+- - -200.0
+  - 60.0
+  - -20.0
+- - -120.0
+  - 90.0
+  - -20.0
+obstacle_rotation_vector:
+- - 0
+  - 0
+  - 1
+- - 0
+  - 0
+  - 1
+obstacle_rotation_degrees:
+- 90.0
+- 90.0
+obstacle_scale:
+- - 0.0015
+  - 0.0015
+  - 0.01
+- - 0.0015
+  - 0.0015
+  - 0.01

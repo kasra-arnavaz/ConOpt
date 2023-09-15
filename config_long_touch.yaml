@@ -1,6 +1,6 @@
 msh_file: data/long_caterpillar.msh
 scad_file: data/caterpillar.scad
-scad_parameters: data/long_caterpillar_scad_params.json
+scad_parameters: data/long_caterpillar_unequal_scad_params.json
 ideal_edge_length: 0.02
 robot_density: 1080.0
 robot_youngs_modulus: 149000
@@ -37,9 +37,9 @@ cable_damping: 0.01
 object_file: data/sphere.obj
 object_density: 1080.0
 object_translation:
+- 20.0
 - -20.0
-- -20.0
-- -20.0
+- 20.0
 object_rotation_vector:
 - 0.0
 - 0.0
