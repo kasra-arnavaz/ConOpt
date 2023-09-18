@@ -48,3 +48,13 @@ class Log:
         print(f"Loss\n{loss}")
         print(f"Gradinets\n{gradient}")
         print(f"Parameters\n{parameter}")
+
+    @staticmethod
+    def print_iteration(path, i: int):
+        loss = torch.load(f"{path}/loss.pt")
+        gradient = torch.load(f"{path}/gradient.pt")
+        parameter = torch.load(f"{path}/parameter.pt")
+        print(f"Iteration {i}")
+        print(f"Loss\n{loss[i]}")
+        print(f"Gradinets\n{gradient[i]}")
+        print(f"Parameters\n{parameter[i]}")
