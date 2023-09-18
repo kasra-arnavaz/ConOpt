@@ -24,10 +24,8 @@ class DepthRendering(ABC):
         pass
 
     def _get_meshes(self):
-        robot = self._scene.robot
-        object = self._scene.object
         meshes = []
-        for mesh in [robot, object]:
+        for mesh in self._scene.all_meshes():
             meshes.append(structures.Meshes(mesh.nodes.position[None], mesh.elements.triangles[None]))
         return structures.join_meshes_as_batch(meshes)
 
@@ -86,7 +84,7 @@ class InteriorGapRendering(InteriorDepthRendering):
     def get_images(self):
         gaps = []
         for zbuf in self._get_zbuf():
-            distance_ = zbuf[0] - zbuf[1]
+            distance_ = zbuf[0] - zbuf[-1]
             distance = distance_.clone()  # to keep gradient flow
             distance[distance < 0] = 0
             gaps.append(distance)
@@ -97,9 +95,9 @@ class InteriorContactRendering(InteriorDepthRendering):
     def get_images(self):
         contacts = []
         for zbuf in self._get_zbuf():
-            distance = zbuf[1] - zbuf[0]
+            distance = zbuf[-1] - zbuf[0]
             mask_contact = distance >= 0
-            mask_object = zbuf[1] > -1.0
+            mask_object = zbuf[-1] > -1.0
             mask_robot = zbuf[0] > -1.0
             mask = mask_contact * mask_robot * mask_object * 1.0
             contacts.append(mask)
