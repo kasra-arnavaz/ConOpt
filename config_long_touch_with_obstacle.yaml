@@ -27,11 +27,11 @@ robot_scale:
 - 0.001
 - 0.001
 cable_pull_ratio:
+- 0.1730
+- 0.0214
 - 0.0
-- 0.0
-- 0.0
-- 0.0
-- 0.0
+- 0.1733
+- 0.1440
 cable_stiffness: 100
 cable_damping: 0.01
 object_file: data/sphere.obj

@@ -19,7 +19,7 @@ from warp_wrapper.contact_properties import ContactProperties
 def main(args):
     config = Config.from_yaml(args.config)
     DEVICE = config.device
-    PATH = get_next_numbered_path(config.out_path)
+    PATH = get_next_numbered_path(args.path)
     config.to_yaml(path=PATH)
 
     # robot
@@ -89,5 +89,6 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config", type=str, help="path like with yaml format")
+    parser.add_argument("-p", "--path", type=str, help="path to where the save the files", default=".dev/scene")
     args = parser.parse_args()
     main(args)
