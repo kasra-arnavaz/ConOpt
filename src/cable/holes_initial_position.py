@@ -28,6 +28,26 @@ class StarfishHolesInitialPosition(HolesInitialPosition):
 
     def get(self):
         self._create_echo_file()
+        return self.get_holes()
+    
+    def get_holes(self):
+        all_holes = self.get_all_holes()
+        num_holes = self.get_number_of_holes()
+        holes_per_cable = all_holes.reshape((-1, num_holes, 3))
+        return [hole for hole in holes_per_cable]
+
+    def get_all_holes(self):
+        file = np.loadtxt(self._get_echo_file(), dtype=str, delimiter=",").tolist()
+        for line in file:
+            line[0] = line[0].replace("ECHO: [", "")
+            line[2] = line[2].replace("]", "")
+        return torch.from_numpy(np.array(file, dtype=np.float32))
+    
+    def get_number_of_holes(self):
+        with open(self._scad.parameters, "r") as f:
+            num_holes_per_cable = int(json.load(f)["parameterSets"]["firstSet"]["num_teeth_per_finger"]) * 2
+        return num_holes_per_cable
+        
 
 class CaterpillarHolesInitialPosition(HolesInitialPosition):
     
