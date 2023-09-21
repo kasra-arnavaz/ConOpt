@@ -1,6 +1,11 @@
-!starfish(body_radius=50, height=40, finger_length=170, finger_width=30, num_fingers=3, num_teeth_per_finger=3, show_holes=false);
-finger(length=170, width=30, height=40, num_teeth=3);
-body(radius=50, width=30, height=40, num_ports=3);
+body_radius=50;
+height=40;
+finger_length=170;
+finger_width=30;
+num_fingers=3;
+num_teeth_per_finger=3;
+
+starfish(body_radius, height, finger_length, finger_width, num_fingers, num_teeth_per_finger, show_holes=false);
 
 module starfish(body_radius, height, finger_length, finger_width, num_fingers, num_teeth_per_finger, echo_holes=true, show_holes=false, eps=0.5)
 {
