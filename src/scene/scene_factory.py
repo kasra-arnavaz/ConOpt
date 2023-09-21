@@ -3,7 +3,7 @@ import sys
 sys.path.append("src")
 
 from mesh.mesh_factory import MeshFactoryFromScad, MeshFactoryFromObj, MeshFactoryFromMsh
-from cable.holes_initial_position import HolesInitialPosition
+from cable.holes_initial_position import CaterpillarHolesInitialPosition
 from mesh.scad import Scad
 from mesh.mesh_properties import MeshProperties
 from point.transform import Transform
@@ -54,7 +54,7 @@ class SceneFactory(ABC):
         return CableListFactory(self._holes(), self.cable_pull_ratio, self.cable_stiffness, self.cable_damping).create()
 
     def _holes(self):
-        holes_position = HolesInitialPosition(self._scad()).get()
+        holes_position = CaterpillarHolesInitialPosition(self._scad()).get()
         holes = HolesListFactory(holes_position, device=self.device).create()
         for hole in holes:
             self.robot_transform.apply(hole)

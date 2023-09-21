@@ -7,7 +7,7 @@ from pathlib import Path
 from mesh.scad import Scad
 from cable.cable_factory import CableListFactory
 from cable.holes_factory import HolesListFactory
-from cable.holes_initial_position import HolesInitialPosition
+from cable.holes_initial_position import CaterpillarHolesInitialPosition
 from cable.cable import Cable
 
 
@@ -17,7 +17,7 @@ class TestCableFactory(unittest.TestCase):
         file = Path("tests/data/caterpillar.scad")
         parameters = Path("tests/data/caterpillar_scad_params.json")
         scad = Scad(file, parameters)
-        holes_position = HolesInitialPosition(scad).get()
+        holes_position = CaterpillarHolesInitialPosition(scad).get()
         cls.holes = HolesListFactory(holes_position).create()
         cls.pull_ratio = [
             torch.tensor(0.5, device="cuda"),

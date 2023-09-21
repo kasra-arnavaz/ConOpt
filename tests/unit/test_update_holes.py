@@ -9,7 +9,7 @@ from cable.barycentric_factory import BarycentricListFactory
 from mesh.mesh_factory import MeshFactoryFromScad
 from simulation.update_holes import HolesPositionAndVelocity, HolesForce
 from mesh.scad import Scad
-from cable.holes_initial_position import HolesInitialPosition
+from cable.holes_initial_position import CaterpillarHolesInitialPosition
 from cable.holes_factory import HolesListFactory
 from cable.cable_factory import CableListFactory
 
@@ -20,7 +20,7 @@ class TestHolesForce(unittest.TestCase):
         file = Path("tests/data/caterpillar.scad")
         parameters = Path("tests/data/caterpillar_scad_params.json")
         scad = Scad(file, parameters)
-        holes_position = HolesInitialPosition(scad).get()
+        holes_position = CaterpillarHolesInitialPosition(scad).get()
         holes = HolesListFactory(holes_position, device="cuda").create()
         pull_ratio = [torch.tensor(0.5, requires_grad=True, device="cuda")] * 3
         cls.cables = CableListFactory(stiffness=100, damping=0.01, pull_ratio=pull_ratio, holes=holes).create()
@@ -41,7 +41,7 @@ class TestHolesPositionAndVelocity(unittest.TestCase):
         file = Path("tests/data/caterpillar.scad")
         parameters = Path("tests/data/caterpillar_scad_params.json")
         scad = Scad(file, parameters)
-        holes_positions = HolesInitialPosition(scad).get()
+        holes_positions = CaterpillarHolesInitialPosition(scad).get()
         cls.mesh = MeshFactoryFromScad(scad).create()
         cls.holes = HolesListFactory(holes_positions).create()
 

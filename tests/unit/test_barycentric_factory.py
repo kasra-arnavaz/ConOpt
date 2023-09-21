@@ -8,7 +8,7 @@ sys.path.append("src")
 from cable.barycentric_factory import BarycentricListFactory
 from mesh.mesh_factory import MeshFactoryFromScad
 from cable.holes_factory import HolesListFactory
-from cable.holes_initial_position import HolesInitialPosition
+from cable.holes_initial_position import CaterpillarHolesInitialPosition
 from mesh.scad import Scad
 
 
@@ -18,7 +18,7 @@ class TestListBarycentricFactory(unittest.TestCase):
         file = Path("tests/data/caterpillar.scad")
         parameters = Path("tests/data/caterpillar_scad_params.json")
         scad = Scad(file, parameters)
-        holes_positions = HolesInitialPosition(scad).get()
+        holes_positions = CaterpillarHolesInitialPosition(scad).get()
         cls.mesh = MeshFactoryFromScad(scad).create()
         cls.holes = HolesListFactory(holes_positions).create()
 

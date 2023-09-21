@@ -5,7 +5,7 @@ from pathlib import Path
 
 sys.path.append("src")
 
-from cable.holes_initial_position import HolesInitialPosition
+from cable.holes_initial_position import CaterpillarHolesInitialPosition
 from mesh.scad import Scad
 
 
@@ -15,7 +15,7 @@ class TestHolesInitialPosition(unittest.TestCase):
         file = Path("tests/data/caterpillar.scad")
         parameters = Path("tests/data/caterpillar_scad_params.json")
         scad = Scad(file, parameters)
-        cls.holes_position = HolesInitialPosition(scad).get()
+        cls.holes_position = CaterpillarHolesInitialPosition(scad).get()
 
     def tests_if_holes_are_sorted_ascendingly_in_height(self):
         for hole in self.holes_position:

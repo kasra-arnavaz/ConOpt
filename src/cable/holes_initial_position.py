@@ -5,20 +5,35 @@ import numpy as np
 from pathlib import Path
 from typing import List
 from mesh.scad import Scad
+from abc import ABC, abstractmethod
 
 
-class HolesInitialPosition:
+class HolesInitialPosition(ABC):
     def __init__(self, scad: Scad):
         self._scad = scad
         self._PATH = Path(".tmp")
         self._PATH.mkdir(exist_ok=True)
 
+    @abstractmethod
+    def get(self) -> List[torch.Tensor]:
+        pass
+        
+    def _create_echo_file(self):
+        os.system(f"openscad {self._scad.file} -o {self._get_echo_file()} -p {self._scad.parameters} -P firstSet")
+
+    def _get_echo_file(self):
+        return self._PATH / "hole.echo"
+    
+class StarfishHolesInitialPosition(HolesInitialPosition):
+
+    def get(self):
+        self._create_echo_file()
+
+class CaterpillarHolesInitialPosition(HolesInitialPosition):
+    
     def get(self) -> List[torch.Tensor]:
         self._create_echo_file()
         return self._sort_holes_position_ascending_by_height()
-
-    def _create_echo_file(self):
-        os.system(f"openscad {self._scad.file} -o {self._get_echo_file()} -p {self._scad.parameters} -P firstSet")
 
     def _sort_holes_position_ascending_by_height(self):
         cables_holes = self._separate_holes_for_each_cable()
@@ -27,9 +42,6 @@ class HolesInitialPosition:
             idx = torch.sort(cable_holes[:, 2], descending=False).indices
             holes_sorted.append(cable_holes[idx])
         return holes_sorted
-
-    def _get_echo_file(self):
-        return self._PATH / "hole.echo"
 
     def _separate_holes_for_each_cable(self):
         holes = self._sort_holes_position_by_cable()

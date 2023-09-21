@@ -10,7 +10,7 @@ from mesh.mesh_factory import MeshFactoryFromScad
 from simulation.update_holes import HolesForce
 from simulation.update_nodes import NodesPositionAndVelocity, NodesForce
 from mesh.mesh_properties import MeshProperties
-from cable.holes_initial_position import HolesInitialPosition
+from cable.holes_initial_position import CaterpillarHolesInitialPosition
 from cable.holes_factory import HolesListFactory
 from cable.cable_factory import CableListFactory
 from cable.barycentric_factory import BarycentricListFactory
@@ -25,7 +25,7 @@ class TestNodesPositionAndVelocity(unittest.TestCase):
         parameters = Path("tests/data/caterpillar_scad_params.json")
         scad = Scad(file, parameters)
 
-        holes_position = HolesInitialPosition(scad).get()
+        holes_position = CaterpillarHolesInitialPosition(scad).get()
         holes = HolesListFactory(holes_position, device="cuda").create()
         holes_positions = [holes.position for holes in holes]
         holes_velocities = [holes.velocity for holes in holes]
@@ -69,7 +69,7 @@ class TestNodesForce(unittest.TestCase):
         file = Path("tests/data/caterpillar.scad")
         parameters = Path("tests/data/caterpillar_scad_params.json")
         scad = Scad(file, parameters)
-        holes_position = HolesInitialPosition(scad).get()
+        holes_position = CaterpillarHolesInitialPosition(scad).get()
         cls.holes = HolesListFactory(holes_position, device="cuda").create()
         holes_positions = [holes.position for holes in cls.holes]
         holes_velocities = [holes.velocity for holes in cls.holes]
