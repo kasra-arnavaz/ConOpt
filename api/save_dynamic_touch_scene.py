@@ -64,7 +64,6 @@ def main(args):
             obstacle_transforms.append(Transform(translation=t, rotation=get_quaternion(vector=rv, angle_in_degrees=rd), scale=s))
     except:
         obstacle_files, obstacle_properties, obstacle_transforms = None, None, None
-
     contact_properties = ContactProperties(
         distance=config.contact_distance, ke=config.contact_ke, kd=config.contact_kd, kf=config.contact_kf
     )
@@ -96,6 +95,7 @@ def main(args):
     simulation = Simulation(scene=scene, properties=sim_properties)
     viewer = SceneViewer(scene=scene, path=PATH)
     update_scene(scene=scene, simulation=simulation, viewer=viewer)
+    print(scene.robot.nodes.position[scene.robot_end_effector_idx])
 
 
 if __name__ == "__main__":
