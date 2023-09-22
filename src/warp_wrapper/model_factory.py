@@ -81,7 +81,6 @@ class ModelFactory:
 
     def _update_model_attributes(self, model: Model):
         model.tri_ke, model.tri_ka, model.tri_kd, model.tri_kb = 0.0, 0.0, 0.0, 0.0
-        model.ground = False
         model.gravity = (0.0, -9.8, 0.0)
         return model
 
@@ -92,4 +91,6 @@ class ModelFactory:
         model.soft_contact_ke = self._contact_properties.ke
         model.soft_contact_kd = self._contact_properties.kd
         model.soft_contact_kf = self._contact_properties.kf
+        # model.soft_contact_margin = 0.2
+        # model.soft_contact_mu = 0.5
         return model
