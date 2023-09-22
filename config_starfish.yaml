@@ -1,0 +1,63 @@
+msh_file: data/starfish.msh
+scad_file: data/starfish.scad
+scad_parameters: data/starfish_scad_params.json
+ideal_edge_length: 0.02
+robot_density: 1080.0
+robot_youngs_modulus: 149000
+robot_poissons_ratio: 0.4
+robot_damping_factor: 0.4
+robot_frozen_bounding_box:
+- 0
+- 0
+- 0
+- 0
+- 0
+- 0
+robot_translation:
+- 0.0
+- 0.0
+- 0.0
+robot_rotation_vector:
+- 1.0
+- 0.0
+- 0.0
+robot_rotation_degrees: -90.0
+robot_scale:
+- 0.001
+- 0.001
+- 0.001
+cable_pull_ratio:
+- 0.5
+- 0.5
+- 0.5
+- 0.5
+- 0.5
+cable_stiffness: 100
+cable_damping: 0.01
+object_file: tests/data/cylinder.obj
+object_density: 1080.0
+object_translation:
+- 60.0
+- -60.0
+- -20.0
+object_rotation_vector:
+- 0.0
+- 0.0
+- 1.0
+object_rotation_degrees: 0.0
+object_scale:
+- 0.0015
+- 0.0015
+- 0.01
+contact_distance: 0.0
+contact_ke: 100
+contact_kd: 0.1
+contact_kf: 0.1
+sim_duration: 1.0
+sim_segment_duration: 0.1
+sim_dt: 5.0e-05
+learning_rate: 1.0e-3
+num_training_iterations: 100
+device: cuda
+use_checkpoint: true
+out_path: .dev/short
