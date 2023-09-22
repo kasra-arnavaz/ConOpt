@@ -27,9 +27,9 @@ robot_scale:
 - 0.001
 - 0.001
 cable_pull_ratio:
-- 0.0
-- 0.0
-- 0.0
+- 7.3554e-02
+- 1.0971e-01
+- 7.8925e-01
 cable_stiffness: 100
 cable_damping: 0.01
 object_file: data/sphere.obj
@@ -51,7 +51,7 @@ sim_duration: 1.0
 sim_segment_duration: 0.1
 sim_dt: 5.0e-05
 contact_distance: 0.0
-contact_ke: 2.0
+contact_ke: 0.1
 contact_kd: 0.1
 contact_kf: 0.1
 learning_rate: 1.0
