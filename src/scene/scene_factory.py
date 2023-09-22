@@ -3,7 +3,7 @@ import sys
 sys.path.append("src")
 
 from mesh.mesh_factory import MeshFactoryFromScad, MeshFactoryFromObj, MeshFactoryFromMsh
-from cable.holes_initial_position import CaterpillarHolesInitialPosition
+from cable.holes_initial_position import CaterpillarHolesInitialPosition, StarfishHolesInitialPosition
 from mesh.scad import Scad
 from mesh.mesh_properties import MeshProperties
 from point.transform import Transform
@@ -52,7 +52,7 @@ class SceneFactory(ABC):
 
     def _cables(self):
         return CableListFactory(self._holes(), self.cable_pull_ratio, self.cable_stiffness, self.cable_damping).create()
-
+    
     def _holes(self):
         holes_position = CaterpillarHolesInitialPosition(self._scad()).get()
         holes = HolesListFactory(holes_position, device=self.device).create()
@@ -95,6 +95,8 @@ class GripperSceneFactory(SceneFactory):
     def _object(self):
         return self._create_obj_mesh(self.object_file, self.object_properties, self.object_transform, self.device)
     
+
+    
 @define
 class TouchSceneFactory(GripperSceneFactory):
     scad_file: PathLike
@@ -131,3 +133,28 @@ class TouchSceneFactory(GripperSceneFactory):
         for file, properties, transform in zip(self.obstacle_files, self.obstacle_properties, self.obstacle_transforms):
             obstacles.append(self._create_obj_mesh(file, properties, transform, self.device))
         return obstacles
+
+@define
+class StarfishSceneFactory(SceneFactory):
+    scad_file: PathLike
+    scad_parameters: PathLike
+    ideal_edge_length: float
+    robot_properties: MeshProperties
+    robot_transform: Transform
+    cable_pull_ratio: List[torch.Tensor]
+    cable_stiffness: float
+    cable_damping: float
+    contact_properties: ContactProperties
+    device: str = "cuda"
+    msh_file: PathLike = None
+    make_new_robot: bool = True
+
+    def create(self) -> Scene:
+        return Scene(robot=self._robot(), contact_properties=self.contact_properties, device=self.device)
+
+    def _holes(self):
+        holes_position = StarfishHolesInitialPosition(self._scad()).get()
+        holes = HolesListFactory(holes_position, device=self.device).create()
+        for hole in holes:
+            self.robot_transform.apply(hole)
+        return holes

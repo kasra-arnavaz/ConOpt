@@ -10,21 +10,25 @@ from warp_wrapper.model_factory import ModelFactory
 from warp_wrapper.contact_properties import ContactProperties
 import copy
 import warp as wp
-from abc import ABC, abstractmethod
 
 wp.init()
 
 
 @define(slots=False)
-class Scene(ABC):
+class Scene:
     robot: Mesh = field()
     device: str = field(default="cuda")
+    contact_properties: ContactProperties = field(default=None)
     model: Model = field(init=False)
 
     @model.default
-    @abstractmethod
     def _create_model(self):
-        pass
+         return ModelFactory(
+            soft_mesh=self.robot,
+            shape_meshes=None,
+            contact_properties=self.contact_properties,
+            device=self.device,
+        ).create()
 
     def all_meshes(self) -> List[Mesh]:
         return [self.robot]
