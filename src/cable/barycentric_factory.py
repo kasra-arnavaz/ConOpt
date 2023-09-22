@@ -39,7 +39,7 @@ class BarycentricFactory:
     def _get_barycentric(self) -> torch.Tensor:
         holes = wp.from_torch(self._holes.position.contiguous(), dtype=wp.vec3)
         nodes = wp.from_torch(self._mesh.nodes.position.contiguous(), dtype=wp.vec3)
-        tetrahedra = wp.from_torch(self._mesh.elements.tetrahedra, dtype=int)
+        tetrahedra = wp.from_torch(self._mesh.elements.tetrahedra, dtype=wp.int32)
         barycentric_matrix = wp.zeros((len(self._holes), len(self._mesh.nodes)), dtype=float, device=self._device)
         wp.launch(
             kernel=self._barycentric_kernel,
