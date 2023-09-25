@@ -27,9 +27,12 @@ module holes(body_radius, height, finger_length, finger_width, num_fingers, num_
     if (echo_holes || show_holes)
     {
         teeth_length = finger_length / (2*num_teeth_per_finger);
+        hole_0 = rotate_point(point=[body_radius-eps, 0, 0.9*height], angle=angle);
+        if (echo_holes) {echo(hole_0);}
+        if (show_holes) {translate(hole_0)sphere(d=5);}
         for (j=[1:2:2*num_teeth_per_finger])
         {
-            center = [(j+0.5)*teeth_length+body_radius, 0, 0.75*height];
+            center = [(j+0.5)*teeth_length+body_radius, 0, 0.9*height];
             shift = [0.5*teeth_length-eps,0,0];
             hole_1 = rotate_point(point=center-shift, angle=angle);
             hole_2 = rotate_point(point=center+shift, angle=angle);

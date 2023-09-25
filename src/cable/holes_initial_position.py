@@ -45,7 +45,7 @@ class StarfishHolesInitialPosition(HolesInitialPosition):
     
     def get_number_of_holes(self):
         with open(self._scad.parameters, "r") as f:
-            num_holes_per_cable = int(json.load(f)["parameterSets"]["firstSet"]["num_teeth_per_finger"]) * 2
+            num_holes_per_cable = int(json.load(f)["parameterSets"]["firstSet"]["num_teeth_per_finger"]) * 2 + 1
         return num_holes_per_cable
         
 
