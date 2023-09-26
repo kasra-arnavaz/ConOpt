@@ -6,7 +6,7 @@ import torch
 sys.path.append("src")
 
 from mesh.scad import Scad
-from mesh.mesh_factory import MeshFactoryFromScad
+from mesh.mesh_factory import MeshFactoryFromMsh
 from simulation.update_holes import HolesForce
 from simulation.update_nodes import NodesPositionAndVelocity, NodesForce
 from mesh.mesh_properties import MeshProperties
@@ -21,6 +21,7 @@ from warp_wrapper.contact_properties import ContactProperties
 class TestNodesPositionAndVelocity(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        msh_file = Path("tests/data/caterpillar.msh")
         file = Path("tests/data/caterpillar.scad")
         parameters = Path("tests/data/caterpillar_scad_params.json")
         scad = Scad(file, parameters)
@@ -38,7 +39,7 @@ class TestNodesPositionAndVelocity(unittest.TestCase):
 
         fn = HolesForce(cables=cables, device="cuda")
         holes_forces = fn(holes_positions, holes_velocities)
-        cls.mesh = MeshFactoryFromScad(scad).create()
+        cls.mesh = MeshFactoryFromMsh(msh_file).create()
         cls.mesh.properties = MeshProperties(
             name="caterpillar",
             youngs_modulus=149_000,
@@ -66,6 +67,7 @@ class TestNodesPositionAndVelocity(unittest.TestCase):
 class TestNodesForce(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        msh_file = Path("tests/data/caterpillar.msh")
         file = Path("tests/data/caterpillar.scad")
         parameters = Path("tests/data/caterpillar_scad_params.json")
         scad = Scad(file, parameters)
@@ -81,7 +83,7 @@ class TestNodesForce(unittest.TestCase):
         cables = CableListFactory(stiffness=100, damping=0.01, pull_ratio=pull_ratio, holes=cls.holes).create()
         fn = HolesForce(cables=cables, device="cuda")
         cls.holes_forces = fn(holes_positions, holes_velocities)
-        cls.mesh = MeshFactoryFromScad(scad).create()
+        cls.mesh = MeshFactoryFromMsh(msh_file).create()
         cls.barycentrics = BarycentricListFactory(mesh=cls.mesh, holes=cls.holes, device="cuda").create()
 
     def tests_if_nodes_force_is_changed(self):

@@ -6,7 +6,7 @@ import torch
 sys.path.append("src")
 
 from cable.barycentric_factory import BarycentricListFactory
-from mesh.mesh_factory import MeshFactoryFromScad
+from mesh.mesh_factory import MeshFactoryFromMsh
 from cable.holes_factory import HolesListFactory
 from cable.holes_initial_position import CaterpillarHolesInitialPosition
 from mesh.scad import Scad
@@ -15,11 +15,12 @@ from mesh.scad import Scad
 class TestListBarycentricFactory(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        msh_file = Path("tests/data/caterpillar.msh")
         file = Path("tests/data/caterpillar.scad")
         parameters = Path("tests/data/caterpillar_scad_params.json")
         scad = Scad(file, parameters)
         holes_positions = CaterpillarHolesInitialPosition(scad).get()
-        cls.mesh = MeshFactoryFromScad(scad).create()
+        cls.mesh = MeshFactoryFromMsh(msh_file).create()
         cls.holes = HolesListFactory(holes_positions).create()
 
     def tests_if_error_is_raised_creating_barycentric(self):

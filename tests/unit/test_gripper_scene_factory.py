@@ -16,6 +16,7 @@ class TestGripperSceneFactory(unittest.TestCase):
     def setUpClass(cls):
         device = "cuda"
         # robot
+        msh_file = Path("tests/data/caterpillar.msh")
         scad_file = Path("tests/data/caterpillar.scad")
         scad_parameters = Path("tests/data/caterpillar_scad_params.json")
         ideal_edge_length = 0.02
@@ -57,7 +58,8 @@ class TestGripperSceneFactory(unittest.TestCase):
             object_transform=object_transform,
             contact_properties=contact_properties,
             device=device,
-            make_new_robot=True
+            msh_file=msh_file,
+            make_new_robot=False
         ).create()
     
     def tests_type_of_robot_attribute(self):

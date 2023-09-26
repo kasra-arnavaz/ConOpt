@@ -6,8 +6,7 @@ import numpy as np
 sys.path.append("src")
 
 from warp_wrapper.model_factory import ModelFactory
-from mesh.scad import Scad
-from mesh.mesh_factory import MeshFactoryFromScad
+from mesh.mesh_factory import MeshFactoryFromMsh
 from mesh.mesh_properties import MeshProperties
 from warp.sim import Model
 from warp_wrapper.contact_properties import ContactProperties
@@ -16,10 +15,8 @@ from warp_wrapper.contact_properties import ContactProperties
 class TestModelFactory(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        file = Path("tests/data/caterpillar.scad")
-        parameters = Path("tests/data/caterpillar_scad_params.json")
-        scad = Scad(file, parameters)
-        mesh = MeshFactoryFromScad(scad).create()
+        msh_file = Path("tests/data/caterpillar.msh")
+        mesh = MeshFactoryFromMsh(msh_file).create()
         mesh.properties = MeshProperties(
             name="caterpillar",
             density=1080.0,
