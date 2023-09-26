@@ -67,7 +67,7 @@ def main(args):
     )
 
     contact_properties = ContactProperties(
-        distance=config.contact_distance, ke=config.contact_ke, kd=config.contact_kd, kf=config.contact_kf
+        distance=config.contact_distance, ke=config.contact_ke, kd=config.contact_kd, kf=config.contact_kf, ground=config.ground
     )
     # obstacle
     try:
@@ -80,7 +80,7 @@ def main(args):
         obstacle_files, obstacle_properties, obstacle_transforms = None, None, None
 
     contact_properties = ContactProperties(
-        distance=config.contact_distance, ke=config.contact_ke, kd=config.contact_kd, kf=config.contact_kf
+        distance=config.contact_distance, ke=config.contact_ke, kd=config.contact_kd, kf=config.contact_kf, ground=config.ground
     )
 
     scene = TouchSceneFactory(

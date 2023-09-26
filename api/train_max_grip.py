@@ -68,7 +68,7 @@ def main(args):
     )
 
     contact_properties = ContactProperties(
-        distance=config.contact_distance, ke=config.contact_ke, kd=config.contact_kd, kf=config.contact_kf
+        distance=config.contact_distance, ke=config.contact_ke, kd=config.contact_kd, kf=config.contact_kf, ground=config.ground
     )
 
     scene = GripperSceneFactory(

@@ -46,7 +46,7 @@ class TestSimulation(unittest.TestCase):
         object_file = Path("tests/data/cylinder.obj")
         object_properties = MeshProperties(name="cylinder", density=1080.0)
         object_transform = Transform(translation=[60, -60, -20], scale=[0.0015, 0.0015, 0.01], device=device)
-        contact_properties = ContactProperties(distance=0.001, ke=2.0, kd=0.1, kf=0.1)
+        contact_properties = ContactProperties(distance=0.001, ke=2.0, kd=0.1, kf=0.1, ground=False)
 
         cls.scene = GripperSceneFactory(
             msh_file=msh_file,

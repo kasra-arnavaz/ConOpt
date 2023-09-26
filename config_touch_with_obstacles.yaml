@@ -4,7 +4,7 @@ scad_parameters: data/short_caterpillar_unequal_scad_params.json
 ideal_edge_length: 0.02
 robot_density: 1080.0
 robot_youngs_modulus: 149000
-robot_poissons_ratio: 0.4
+robot_poissons_ratio: 0.45
 robot_damping_factor: 0.4
 robot_frozen_bounding_box:
 - -.inf
@@ -54,6 +54,7 @@ contact_distance: 0.0
 contact_ke: 0.1
 contact_kd: 0.1
 contact_kf: 0.1
+ground: false
 learning_rate: 1.0
 num_training_iterations: 200
 device: cuda

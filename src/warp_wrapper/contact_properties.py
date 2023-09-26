@@ -7,3 +7,4 @@ class ContactProperties:
     ke: float = field()
     kd: float = field()
     kf: float = field()
+    ground: bool = field()

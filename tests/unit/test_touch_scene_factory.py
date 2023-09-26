@@ -48,7 +48,7 @@ class TestGripperSceneFactory(unittest.TestCase):
         obstacle_2_transform = Transform(translation=[60, -60, -20], rotation=get_quaternion(vector=[0,0,1], angle_in_degrees=90), scale=[0.0015, 0.0015, 0.01], device=device)
         obstacle_tranforms = [obstacle_1_transform, obstacle_2_transform]
 
-        contact_properties = ContactProperties(distance=0.001, ke=2.0, kd=0.1, kf=0.1)
+        contact_properties = ContactProperties(distance=0.001, ke=2.0, kd=0.1, kf=0.1, ground=False)
         
         cls.scene = TouchSceneFactory(
             scad_file=scad_file,

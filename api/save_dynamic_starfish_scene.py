@@ -47,7 +47,7 @@ def main(args):
     cable_stiffness, cable_damping = config.cable_stiffness, config.cable_damping
 
     contact_properties = ContactProperties(
-        distance=config.contact_distance, ke=config.contact_ke, kd=config.contact_kd, kf=config.contact_kf
+        distance=config.contact_distance, ke=config.contact_ke, kd=config.contact_kd, kf=config.contact_kf, config=config.ground
     )
     
     scene = StarfishSceneFactory(

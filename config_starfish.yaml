@@ -53,6 +53,7 @@ contact_distance: 0.0
 contact_ke: 10
 contact_kd: 1
 contact_kf: 0.1
+ground: true
 sim_duration: 1.0
 sim_segment_duration: 0.1
 sim_dt: 5.0e-05

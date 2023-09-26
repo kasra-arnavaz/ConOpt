@@ -51,7 +51,7 @@ class TestNodesPositionAndVelocity(unittest.TestCase):
         barycentrics = BarycentricListFactory(mesh=cls.mesh, holes=holes, device="cuda").create()
         fn = NodesForce(barycentrics=barycentrics)
         cls.mesh.nodes.force = fn(holes_forces)
-        contact_properties = ContactProperties(distance=0.01, ke=2.0, kd=0.1, kf=0.1)
+        contact_properties = ContactProperties(distance=0.01, ke=2.0, kd=0.1, kf=0.1, ground=False)
         cls.model = ModelFactory(soft_mesh=cls.mesh, contact_properties=contact_properties, device="cuda").create()
 
     def tests_if_nodes_position_and_velocity_is_changed(self):

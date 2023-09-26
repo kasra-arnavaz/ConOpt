@@ -34,6 +34,7 @@ class Config:
     contact_ke: float
     contact_kd: float
     contact_kf: float
+    ground: bool
     learning_rate: float
     num_training_iterations: int
     device: str

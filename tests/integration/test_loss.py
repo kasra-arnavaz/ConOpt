@@ -49,7 +49,7 @@ class TestMaxGripLoss(unittest.TestCase):
         object_properties = MeshProperties(name="cylinder", density=1080.0)
         object_transform = Transform(translation=[60, -60, -20], scale=[0.0015, 0.0015, 0.01], device=cls.device)
 
-        contact_properties = ContactProperties(distance=0.001, ke=2.0, kd=0.1, kf=0.1)
+        contact_properties = ContactProperties(distance=0.001, ke=2.0, kd=0.1, kf=0.1, ground=False)
 
         cls.scene = GripperSceneFactory(
             msh_file=msh_file,
@@ -116,7 +116,7 @@ class TestPointTouchLoss(unittest.TestCase):
         object_properties = MeshProperties(name="sphere", density=1080.0)
         object_transform = Transform(translation=[-20, -20, -20], scale=[0.01, 0.01, 0.01], device=cls.device)
 
-        contact_properties = ContactProperties(distance=0.001, ke=2.0, kd=0.1, kf=0.1)
+        contact_properties = ContactProperties(distance=0.001, ke=2.0, kd=0.1, kf=0.1, ground=False)
 
         cls.scene = TouchSceneFactory(
             msh_file=msh_file,

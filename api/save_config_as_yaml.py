@@ -44,6 +44,7 @@ def main():
         contact_ke=2.0,
         contact_kd=0.1,
         contact_kf=0.1,
+        ground=False,
         learning_rate=1.0e-5,
         num_training_iterations=200,
         device="cuda",

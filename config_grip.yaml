@@ -56,6 +56,7 @@ contact_distance: 0.001
 contact_ke: 2.0
 contact_kd: 0.1
 contact_kf: 0.1
+ground: false
 learning_rate: 1.0e-05
 num_training_iterations: 100
 device: cuda
