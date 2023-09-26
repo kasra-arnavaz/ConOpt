@@ -81,6 +81,7 @@ class ModelFactory:
 
     def _update_model_attributes(self, model: Model):
         model.tri_ke, model.tri_ka, model.tri_kd, model.tri_kb = 0.0, 0.0, 0.0, 0.0
+        model.ground = False
         model.gravity = (0.0, -9.8, 0.0)
         return model
 

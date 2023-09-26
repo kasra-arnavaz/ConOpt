@@ -4,8 +4,9 @@ import sys
 
 sys.path.append("src")
 
-from rendering.rendering import InteriorGapRendering
-from scene.scene import Scene
+from rendering.rendering import InteriorGapRendering, InteriorContactRendering
+from rendering.views import InteriorViews
+from scene.scene import Scene, TouchScene
 from typing import List
 
 
@@ -28,6 +29,7 @@ class ToyLoss(Loss):
 
 class MaxGripLoss(Loss):
     def __init__(self, rendering: InteriorGapRendering, device: str = "cuda"):
+        #todo: change init to make rendering based on scene and views
         self._rendering = rendering
         self._device = device
 
@@ -40,10 +42,17 @@ class MaxGripLoss(Loss):
 
 
 class PointTouchLoss(Loss):
-    def __init__(self, scene: Scene):
+    def __init__(self, scene: TouchScene):
         self._scene = scene
 
     def get_loss(self):
         output_position = self._scene.robot.nodes.position[self._scene.robot_end_effector_idx]
         target_position = self._scene.object.nodes.position.mean(dim=0)
         return torch.sum((output_position - target_position) ** 2)
+    
+class ObstacleAvoidanceLoss(Loss):
+    def __init__(self, scene: TouchScene, views: InteriorViews, device: str = "cuda"):
+        self._rendering = InteriorContactRendering(scene=scene, views=views, device=device)
+
+    def get_loss(self):
+        pass

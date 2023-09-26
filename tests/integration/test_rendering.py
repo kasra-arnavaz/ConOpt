@@ -13,6 +13,7 @@ from simulation.simulation_properties import SimulationProperties
 from scene.scene_factory import GripperSceneFactory
 from warp_wrapper.contact_properties import ContactProperties
 from simulation.update_scene import update_scene
+from rendering.z_buffer import ZBuffer
 
 
 class TestRenderingVisualization(unittest.TestCase):
@@ -78,7 +79,8 @@ class TestRenderingVisualization(unittest.TestCase):
 
     def tests_if_exterior_depth_rendering_of_robot_runs_given_six_views(self):
         views = SixExteriorViews(distance=0.5, device=self.device)
-        rendering = ExteriorDepthRendering(scene=self.scene, views=views, device=self.device)
+        zbufs = [ZBuffer(mesh=mesh, views=views, device=self.device) for mesh in self.scene.all_meshes()]
+        rendering = ExteriorDepthRendering(zbufs)
         try:
             rendering.get_images()
         except:
@@ -86,7 +88,9 @@ class TestRenderingVisualization(unittest.TestCase):
 
     def tests_if_interior_gap_rendering_runs_given_six_views(self):
         views = SixInteriorViews(center=self.scene.object.nodes.position.mean(dim=0), device=self.device)
-        rendering = InteriorGapRendering(self.scene, views, self.device)
+        robot_zbuf = ZBuffer(mesh=self.scene.robot, views=views, device=self.device)
+        other_zbuf = ZBuffer(mesh=self.scene.object, views=views, device=self.device)
+        rendering = InteriorGapRendering(robot_zbuf=robot_zbuf, other_zbuf=other_zbuf)
         try:
             rendering.get_images()
         except:
@@ -94,7 +98,9 @@ class TestRenderingVisualization(unittest.TestCase):
 
     def tests_if_interior_contact_rendering_runs_given_six_views(self):
         views = SixInteriorViews(center=self.scene.object.nodes.position.mean(dim=0), device=self.device)
-        rendering = InteriorContactRendering(self.scene, views, self.device)
+        robot_zbuf = ZBuffer(mesh=self.scene.robot, views=views, device=self.device)
+        other_zbuf = ZBuffer(mesh=self.scene.object, views=views, device=self.device)
+        rendering = InteriorContactRendering(robot_zbuf=robot_zbuf, other_zbuf=other_zbuf)
         try:
             rendering.get_images()
         except:

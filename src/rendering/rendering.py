@@ -1,91 +1,58 @@
-from abc import ABC, abstractmethod
 from typing import List
-from pytorch3d import structures, renderer
 import sys
 import torch
 
 sys.path.append("src")
-from rendering.views import Views, ExteriorViews, InteriorViews
-from functools import cached_property
-from scene.scene import Scene
-
+from rendering.z_buffer import ZBuffer
+from abc import ABC, abstractmethod
 
 class DepthRendering(ABC):
-    def __init__(self, scene: Scene, views: Views, device: str = "cuda"):
-        self._scene = scene
-        self._device = device
-        self._views = views.get()
-        self._znear = 0.001
-        self._zfar = 10
-        self._fov = 90
 
     @abstractmethod
-    def get_images(self) -> List[torch.Tensor]:
+    def get_images(self):
         pass
-
-    def _get_meshes(self):
-        meshes = []
-        for mesh in self._scene.all_meshes():
-            meshes.append(structures.Meshes(mesh.nodes.position[None], mesh.elements.triangles[None]))
-        return structures.join_meshes_as_batch(meshes)
-
-    @cached_property
-    def _cameras(self):
-        cameras = []
-        for view in self._views:
-            cameras.append(
-                renderer.FoVPerspectiveCameras(
-                    R=view[0],
-                    T=view[1],
-                    znear=self._znear,
-                    zfar=self._zfar,
-                    fov=self._fov,
-                    device=self._device,
-                )
-            )
-        return cameras
-
-    @cached_property
-    def _rasterizers(self):
-        settings = renderer.RasterizationSettings(image_size=1000, blur_radius=0.0, faces_per_pixel=1, bin_size=0)
-        return [renderer.MeshRasterizer(cameras=camera, raster_settings=settings) for camera in self._cameras]
-
-    def _get_zbuf(self):
-        meshes = self._get_meshes()
-        return [rasterizer(meshes).zbuf for rasterizer in self._rasterizers]
 
 
 class ExteriorDepthRendering(DepthRendering):
-    def __init__(self, scene: Scene, views: ExteriorViews, device: str = "cuda"):
-        super().__init__(scene, views, device)
+    def __init__(self, zbufs: List[ZBuffer]):
+        self._zbufs = zbufs
 
-    def get_images(self) -> List[torch.Tensor]:
-        images = []
+    @property
+    def zbufs(self):
+        return torch.stack([zbuf.zbuf for zbuf in self._zbufs])
+    
+    def get_images(self):
+        zbufs = self.zbufs
         LARGE_POSITIVE_NUMBER = 619.0
-        for zbuf in self._get_zbuf():
-            zbuf[zbuf == -1.0] = LARGE_POSITIVE_NUMBER
-            buffers = zbuf.amin(dim=0)
-            buffers[buffers == LARGE_POSITIVE_NUMBER] = -1.0
-            images.append(buffers)
+        zbufs[zbufs == -1.0] = LARGE_POSITIVE_NUMBER
+        images = zbufs.amin(dim=0)
+        images[images == LARGE_POSITIVE_NUMBER] = -1.0
+        images = [image for image in images]
         return images
+    
 
 
 class InteriorDepthRendering(DepthRendering):
-    def __init__(
-        self,
-        scene: Scene,
-        views: InteriorViews,
-        device: str = "cuda",
-    ):
-        super().__init__(scene, views, device)
+    def __init__(self, robot_zbuf: ZBuffer, other_zbuf: ZBuffer):
+        self._robot_zbuf = robot_zbuf
+        self._other_zbuf = other_zbuf
+
+    @property
+    def robot_zbuf(self):
+        return self._robot_zbuf.zbuf
+    
+    @property
+    def other_zubf(self):
+        return self._other_zbuf.zbuf
 
 
 class InteriorGapRendering(InteriorDepthRendering):
     def get_images(self):
         gaps = []
-        for zbuf in self._get_zbuf():
-            distance_ = zbuf[0] - zbuf[-1]
-            distance = distance_.clone()  # to keep gradient flow
+        robot_zbuf = self.robot_zbuf
+        other_zbuf = self.other_zubf
+        for rz, oz in zip(robot_zbuf, other_zbuf): #looping over views
+            distance = rz - oz
             distance[distance < 0] = 0
             gaps.append(distance)
         return gaps
@@ -94,11 +61,13 @@ class InteriorGapRendering(InteriorDepthRendering):
 class InteriorContactRendering(InteriorDepthRendering):
     def get_images(self):
         contacts = []
-        for zbuf in self._get_zbuf():
-            distance = zbuf[-1] - zbuf[0]
+        robot_zbuf = self.robot_zbuf
+        other_zbuf = self.other_zubf
+        for rz, oz in zip(robot_zbuf, other_zbuf): # looping over views
+            distance = oz - rz
             mask_contact = distance >= 0
-            mask_object = zbuf[-1] > -1.0
-            mask_robot = zbuf[0] > -1.0
-            mask = mask_contact * mask_robot * mask_object * 1.0
+            mask_other = oz > -1.0
+            mask_robot = rz > -1.0
+            mask = mask_contact * mask_robot * mask_other * 1.0
             contacts.append(mask)
         return contacts

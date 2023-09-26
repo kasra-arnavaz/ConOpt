@@ -28,7 +28,7 @@ class Visual:
         num_columns = 3
         images = self._get_images()
         num_rows = int(len(images) // num_columns)
-        fig = plt.figure(figsize=(30, 10))
+        fig = plt.figure(figsize=(10 * num_columns, 10*num_rows))
         for i, image in enumerate(images):
             plt.subplot(num_rows, num_columns, i + 1)
             plt.imshow(image.detach().cpu().numpy(), cmap="gray")

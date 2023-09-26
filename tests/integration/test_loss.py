@@ -14,7 +14,7 @@ from simulation.simulation_properties import SimulationProperties
 from scene.scene_factory import GripperSceneFactory, TouchSceneFactory
 from simulation.update_scene import update_scene
 from warp_wrapper.contact_properties import ContactProperties
-
+from rendering.z_buffer import ZBuffer
 
 class TestMaxGripLoss(unittest.TestCase):
     @classmethod
@@ -29,7 +29,7 @@ class TestMaxGripLoss(unittest.TestCase):
             name="caterpillar",
             density=1080.0,
             youngs_modulus=149_000,
-            poissons_ratio=0.45,
+            poissons_ratio=0.40,
             damping_factor=0.4,
             frozen_bounding_box=[-float("inf"), -0.01, -float("inf"), float("inf"), -float("inf"), float("inf")],
         )
@@ -74,7 +74,9 @@ class TestMaxGripLoss(unittest.TestCase):
         simulation = Simulation(scene=cls.scene, properties=sim_properties)
         update_scene(scene=cls.scene, simulation=simulation)
         views = ThreeInteriorViews(center=cls.scene.object.nodes.position.mean(dim=0), device=cls.device)
-        cls.rendering = InteriorGapRendering(scene=cls.scene, views=views, device=cls.device)
+        robot_zbuf = ZBuffer(mesh=cls.scene.robot, views=views, device=cls.device)
+        other_zbuf = ZBuffer(mesh=cls.scene.object, views=views, device=cls.device)
+        cls.rendering = InteriorGapRendering(robot_zbuf=robot_zbuf, other_zbuf=other_zbuf)
 
     def tests_if_max_grip_loss_is_of_type_torch_tensor(self):
         loss = MaxGripLoss(rendering=self.rendering, device=self.device).get_loss()
@@ -94,7 +96,7 @@ class TestPointTouchLoss(unittest.TestCase):
             name="caterpillar",
             density=1080.0,
             youngs_modulus=149_000,
-            poissons_ratio=0.45,
+            poissons_ratio=0.40,
             damping_factor=0.4,
             frozen_bounding_box=[-float("inf"), -0.01, -float("inf"), float("inf"), -float("inf"), float("inf")],
         )

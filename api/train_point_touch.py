@@ -24,7 +24,7 @@ from warp_wrapper.contact_properties import ContactProperties
 from config.config import Config
 import argparse
 from utils.path import get_next_numbered_path
-
+from rendering.z_buffer import ZBuffer
 
 def main(args):
     config = Config.from_yaml(args.config)
@@ -111,17 +111,13 @@ def main(args):
         duration=config.sim_duration, segment_duration=config.sim_segment_duration, dt=config.sim_dt, device=DEVICE
     )
     simulation = Simulation(scene=scene, properties=sim_properties, use_checkpoint=config.use_checkpoint)
-    views = SixInteriorViews(center=scene.object.nodes.position.mean(dim=0), device=DEVICE)
-    rendering = InteriorGapRendering(
-        scene=scene,
-        views=views,
-        device=DEVICE,
-    )
     loss = PointTouchLoss(scene=scene)
     optimizer = GradientDescent(loss, variables, learning_rate=config.learning_rate)
     exterior_view = ThreeExteriorViews(distance=0.5, device=DEVICE)
+    robot_zbuf_ext = ZBuffer(mesh=scene.robot, views=exterior_view, device=DEVICE)
+    object_zbuf_ext = ZBuffer(mesh=scene.object, views=exterior_view, device=DEVICE)
     visual_ext = Visual(
-        ExteriorDepthRendering(scene=scene, views=exterior_view, device=DEVICE), path=PATH, prefix="ext"
+        ExteriorDepthRendering(zbufs=[robot_zbuf_ext, object_zbuf_ext]), path=PATH, prefix="ext"
     )
     log = Log(loss=loss, variables=variables, path=PATH)
     Train(
