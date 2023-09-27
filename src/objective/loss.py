@@ -7,8 +7,7 @@ sys.path.append("src")
 from rendering.rendering import InteriorGapRendering, InteriorContactRendering
 from rendering.views import InteriorViews
 from scene.scene import Scene, TouchScene
-from typing import List
-
+from rendering.z_buffer import ZBuffer
 
 class Loss(ABC):
     @abstractmethod
@@ -17,6 +16,9 @@ class Loss(ABC):
 
     def backward(self):
         self.get_loss().backward()
+
+    def __add__(self, other):
+        return self.get_loss() + other.get_loss()
 
 
 class ToyLoss(Loss):
@@ -29,7 +31,6 @@ class ToyLoss(Loss):
 
 class MaxGripLoss(Loss):
     def __init__(self, rendering: InteriorGapRendering, device: str = "cuda"):
-        #todo: change init to make rendering based on scene and views
         self._rendering = rendering
         self._device = device
 
@@ -51,8 +52,15 @@ class PointTouchLoss(Loss):
         return torch.sum((output_position - target_position) ** 2)
     
 class ObstacleAvoidanceLoss(Loss):
-    def __init__(self, scene: TouchScene, views: InteriorViews, device: str = "cuda"):
-        self._rendering = InteriorContactRendering(scene=scene, views=views, device=device)
+    def __init__(self, rendering: InteriorContactRendering, device: str = "cuda"):
+        self._rendering = rendering
+        self._device = device
+       
 
     def get_loss(self):
-        pass
+        loss = torch.zeros(1, requires_grad=True, device=self._device)
+        images = self._rendering.get_images()
+        for image in images:
+            loss = loss + image.sum()
+        return loss/len(images)
+
