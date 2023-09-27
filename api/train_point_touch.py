@@ -116,8 +116,11 @@ def main(args):
     exterior_view = ThreeExteriorViews(distance=0.5, device=DEVICE)
     robot_zbuf_ext = ZBuffer(mesh=scene.robot, views=exterior_view, device=DEVICE)
     object_zbuf_ext = ZBuffer(mesh=scene.object, views=exterior_view, device=DEVICE)
+    obstacle_zbuf_ext = [ZBuffer(mesh=obstacle, views=exterior_view, device=DEVICE) for obstacle in scene.obstacles]
+    all_zbufs = [robot_zbuf_ext, object_zbuf_ext]
+    all_zbufs.extend(obstacle_zbuf_ext)
     visual_ext = Visual(
-        ExteriorDepthRendering(zbufs=[robot_zbuf_ext, object_zbuf_ext]), path=PATH, prefix="ext"
+        ExteriorDepthRendering(zbufs=all_zbufs), path=PATH, prefix="ext"
     )
     log = Log(loss=loss, variables=variables, path=PATH)
     Train(
