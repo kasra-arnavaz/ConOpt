@@ -32,6 +32,7 @@ class ModelFactory:
         model = builder.finalize(self._device)
         model = self._update_model_attributes(model)
         model = self._update_model_contact_properties(model)
+        model.contact_properties = self._contact_properties
         return model
 
     def _add_soft_mesh(self, builder: ModelBuilder):

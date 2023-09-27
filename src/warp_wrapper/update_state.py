@@ -23,7 +23,7 @@ class UpdateState(torch.autograd.Function):
         ctx.tape = wp.Tape()
         ctx.force = wp.from_torch(force.contiguous(), dtype=wp.vec3)
         with ctx.tape:
-            wp.sim.collide(model, ctx.state_now)
+            wp.sim.collide(model, ctx.state_now) if model.contact_properties is not None else None
             ctx.state_now.clear_forces()
             ctx.state_now.particle_f = ctx.force
             wp.sim.SemiImplicitIntegrator().simulate(model, ctx.state_now, ctx.state_next, dt)
