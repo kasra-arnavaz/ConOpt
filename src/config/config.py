@@ -30,16 +30,16 @@ class Config:
     sim_duration: float
     sim_segment_duration: float
     sim_dt: float
-    contact_distance: float
-    contact_ke: float
-    contact_kd: float
-    contact_kf: float
-    ground: bool
     learning_rate: float
     num_training_iterations: int
     device: str
     use_checkpoint: bool
     out_path: str
+    contact_distance: float = None
+    contact_ke: float = None
+    contact_kd: float = None
+    contact_kf: float = None
+    ground: bool = None
     obstacle_file: list = None
     obstacle_density: list = None
     obstacle_translation: list = None
