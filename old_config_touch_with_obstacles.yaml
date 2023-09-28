@@ -27,17 +27,17 @@ robot_scale:
 - 0.001
 - 0.001
 cable_pull_ratio:
-- 0.6
-- 0.0
-- 0.4
-cable_stiffness: 50
+- 0.0868
+- 0.1116
+- 0.9296
+cable_stiffness: 100
 cable_damping: 0.01
 object_file: data/sphere.obj
 object_density: 1080.0
 object_translation:
-- -22.94
-- -46.32
-- -21.68
+- -8.26
+- -38.56
+- 11.46
 object_rotation_vector:
 - 0.0
 - 0.0
@@ -47,7 +47,7 @@ object_scale:
 - 0.005
 - 0.005
 - 0.005
-sim_duration: 1.0
+sim_duration: 5.0
 sim_segment_duration: 0.1
 sim_dt: 5.0e-05
 contact_distance: null
@@ -67,12 +67,12 @@ obstacle_density:
 - 1080.0
 - 1080.0
 obstacle_translation:
-- - 60.0
+- - 5.0
+  - -35
+  - -85.0
+- - -30.0
+  - -120.0
   - -80.0
-  - -30.0
-- - 60.0
-  - -180.0
-  - -30.0
 obstacle_rotation_vector:
 - - 0
   - 1
