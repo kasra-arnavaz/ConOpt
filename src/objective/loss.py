@@ -5,9 +5,9 @@ import sys
 sys.path.append("src")
 
 from rendering.rendering import InteriorGapRendering, InteriorContactRendering
-from rendering.views import InteriorViews
 from scene.scene import Scene, TouchScene
-from rendering.z_buffer import ZBuffer
+from typing import List
+
 
 class Loss(ABC):
     @abstractmethod
@@ -16,9 +16,6 @@ class Loss(ABC):
 
     def backward(self):
         self.get_loss().backward()
-
-    def __add__(self, other):
-        return self.get_loss() + other.get_loss()
 
 
 class ToyLoss(Loss):
@@ -56,11 +53,21 @@ class ObstacleAvoidanceLoss(Loss):
         self._rendering = rendering
         self._device = device
        
-
     def get_loss(self):
         loss = torch.zeros(1, requires_grad=True, device=self._device)
         images = self._rendering.get_images()
         for image in images:
-            loss = loss + image.sum()
+            loss = loss + image.mean()
         return loss/len(images)
+    
+class PointTouchWithObstacleAvoidanceLoss(Loss):
+    def __init__(self, scene: TouchScene, renderings: List[InteriorContactRendering], device: str = "cuda"):
+        self._point_touch_loss = PointTouchLoss(scene)
+        self._obstacle_avoidance_losses = [ObstacleAvoidanceLoss(rendering, device) for rendering in renderings]
+
+    def get_loss(self):
+        loss = self._point_touch_loss.get_loss()
+        for obstacle_avoidance_loss in self._obstacle_avoidance_losses:
+            loss = loss + obstacle_avoidance_loss.get_loss()
+        return loss
 

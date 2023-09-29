@@ -27,9 +27,9 @@ robot_scale:
 - 0.001
 - 0.001
 cable_pull_ratio:
-- 0.6
-- 0.0
-- 0.4
+- 0.5443
+- 0.0274
+- 0.0794
 cable_stiffness: 50
 cable_damping: 0.01
 object_file: data/sphere.obj
@@ -55,7 +55,7 @@ contact_ke: null
 contact_kd: null
 contact_kf: null
 ground:  null
-learning_rate: 1.0
+learning_rate: 0.01
 num_training_iterations: 200
 device: cuda
 use_checkpoint: true

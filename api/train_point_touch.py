@@ -14,7 +14,7 @@ from rendering.rendering import (
     InteriorGapRendering,
     InteriorContactRendering,
 )
-from objective.loss import PointTouchLoss
+from objective.loss import PointTouchLoss, ObstacleAvoidanceLoss, PointTouchWithObstacleAvoidanceLoss
 from objective.optimizer import GradientDescent, Adam
 from objective.train import Train
 from objective.variables import Variables
@@ -111,7 +111,18 @@ def main(args):
         duration=config.sim_duration, segment_duration=config.sim_segment_duration, dt=config.sim_dt, device=DEVICE
     )
     simulation = Simulation(scene=scene, properties=sim_properties, use_checkpoint=config.use_checkpoint)
-    loss = PointTouchLoss(scene=scene)
+    # point touch with obstacle avoidance loss
+    views_obstacle_0 = SixInteriorViews(center=scene.obstacles[0].nodes.position.mean(dim=0), device=DEVICE)
+    views_obstacle_1 = SixInteriorViews(center=scene.obstacles[1].nodes.position.mean(dim=0), device=DEVICE)
+    robot_zbuf_0 = ZBuffer(mesh=scene.robot, views=views_obstacle_0, device=DEVICE)
+    robot_zbuf_1 = ZBuffer(mesh=scene.robot, views=views_obstacle_1, device=DEVICE)
+    robot_zbufs = [robot_zbuf_0, robot_zbuf_1]
+    obstacle_zbuf_0 = ZBuffer(mesh=scene.obstacles[0], views=views_obstacle_0, device=DEVICE)
+    obstacle_zbuf_1 = ZBuffer(mesh=scene.obstacles[1], views=views_obstacle_1, device=DEVICE)
+    obstacle_zbufs = [obstacle_zbuf_0, obstacle_zbuf_1]
+    renderings = [InteriorContactRendering(robot_zbuf=rz, other_zbuf=oz) for rz, oz in zip(robot_zbufs, obstacle_zbufs)]
+    loss = PointTouchWithObstacleAvoidanceLoss(scene=scene, renderings=renderings, device=DEVICE)
+
     optimizer = GradientDescent(loss, variables, learning_rate=config.learning_rate)
     exterior_view = ThreeExteriorViews(distance=0.5, device=DEVICE)
     robot_zbuf_ext = ZBuffer(mesh=scene.robot, views=exterior_view, device=DEVICE)

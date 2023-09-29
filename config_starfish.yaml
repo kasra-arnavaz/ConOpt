@@ -3,8 +3,8 @@ scad_file: data/starfish.scad
 scad_parameters: data/starfish_scad_params.json
 ideal_edge_length: 0.02
 robot_density: 1080.0
-robot_youngs_modulus: 50000
-robot_poissons_ratio: 0.49
+robot_youngs_modulus: 149000
+robot_poissons_ratio: 0.40
 robot_damping_factor: 0.4
 robot_frozen_bounding_box:
 - 0
@@ -27,11 +27,11 @@ robot_scale:
 - 0.001
 - 0.001
 cable_pull_ratio:
-- 0.5
-- 0.5
-- 0.5
-- 0.5
-- 0.5
+- 0.8
+- 0.8
+- 0.8
+- 0.8
+- 0.8
 cable_stiffness: 100
 cable_damping: 0.1
 object_file: tests/data/cylinder.obj

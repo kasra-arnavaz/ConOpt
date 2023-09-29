@@ -224,7 +224,6 @@ class TestObstacleAvoidanceLoss(unittest.TestCase):
 
     def tests_if_max_grip_loss_is_of_type_torch_tensor(self):
         loss = ObstacleAvoidanceLoss(self.rendering[0], device=self.device) + ObstacleAvoidanceLoss(self.rendering[1], device=self.device)
-        print(loss)
         self.assertIsInstance(loss, torch.Tensor)
 
 
