@@ -31,7 +31,7 @@ class TestMaxGripLoss(unittest.TestCase):
     def setUpClass(cls):
         device = "cuda"
         sim_properties = SimulationProperties(
-            duration=0.02, segment_duration=0.01, dt=5.e-05, device=device
+            duration=0.02, segment_duration=0.01, dt=5.e-05, key_timepoints=[0., 0.01, 0.02], device=device
         )
         # robot
         msh_file = Path("data/long_caterpillar.msh")
@@ -50,15 +50,15 @@ class TestMaxGripLoss(unittest.TestCase):
             rotation=get_quaternion(vector=[1, 0, 0], angle_in_degrees=90), scale=[0.001, 0.001, 0.001], device=device
         )
         cable_pull_ratio = [
-            TimeVariablePullRatio(time=[0, 0.01, 0.015, 0.02], dt=sim_properties.dt),
-            TimeVariablePullRatio(time=[0, 0.01, 0.015, 0.02], dt=sim_properties.dt),
-            TimeVariablePullRatio(time=[0, 0.01, 0.015, 0.02], dt=sim_properties.dt),
+            TimeVariablePullRatio(simulation_properties=sim_properties),
+            TimeVariablePullRatio(simulation_properties=sim_properties),
+            TimeVariablePullRatio(simulation_properties=sim_properties),
         ]
 
         # cable_pull_ratio = [
-        #     TimeInvariablePullRatio(num_steps=sim_properties.num_steps),
-        #     TimeInvariablePullRatio(num_steps=sim_properties.num_steps),
-        #     TimeInvariablePullRatio(num_steps=sim_properties.num_steps),
+        #     TimeInvariablePullRatio(simulation_properties=sim_properties),
+        #     TimeInvariablePullRatio(simulation_properties=sim_properties),
+        #     TimeInvariablePullRatio(simulation_properties=sim_properties),
         # ]
         cable_stiffness, cable_damping = 100, 0.01
         # object

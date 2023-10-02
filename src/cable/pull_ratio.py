@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 import torch
 from typing import List
+import sys
+sys.path.append("src")
+from simulation.simulation_properties import SimulationProperties
 
 
 class PullRatio(ABC):
@@ -29,10 +32,10 @@ class PullRatio(ABC):
 
 class TimeInvariablePullRatio(PullRatio):
 
-    def __init__(self, num_steps: int, pull_ratio: torch.Tensor = None, device: str = "cuda"):
+    def __init__(self, simulation_properties: SimulationProperties, pull_ratio: torch.Tensor = None, device: str = "cuda"):
         super().__init__()
         self._pull_ratio = pull_ratio or torch.zeros(1, device=device)
-        self._num_steps = num_steps
+        self._num_steps = simulation_properties.num_steps
     @property
     def optimizable(self):
         return [self._pull_ratio]
@@ -42,11 +45,11 @@ class TimeInvariablePullRatio(PullRatio):
     
 class TimeVariablePullRatio(PullRatio):
 
-    def __init__(self, time: List[torch.Tensor], dt: float, pull_ratio: List[torch.Tensor] = None, device: str = "cuda"):
+    def __init__(self, simulation_properties: SimulationProperties, pull_ratio: List[torch.Tensor] = None, device: str = "cuda"):
         super().__init__()
-        self._pull_ratio = pull_ratio or [torch.zeros(1, device=device) for _ in range(len(time))]
-        self._time = time
-        self._dt = dt
+        self._time = simulation_properties.key_timepoints
+        self._pull_ratio = pull_ratio or [torch.zeros(1, device=device) for _ in range(len(self._time))]
+        self._dt = simulation_properties.dt
         self._device = device
 
     @property

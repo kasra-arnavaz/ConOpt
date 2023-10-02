@@ -1,6 +1,6 @@
 from attrs import define, field
 from decimal import Decimal
-
+from typing import List
 
 @define
 class SimulationProperties:
@@ -11,6 +11,7 @@ class SimulationProperties:
     num_steps_per_segment: int = field()
     num_steps: int = field()
     device: str = field(default="cuda")
+    key_timepoints: List[float] = field(default=None)
 
     @num_steps.default
     def _calc_num_steps(self):
