@@ -9,8 +9,13 @@ class SimulationProperties:
     dt: float = field(metadata={"unit": "seconds"})
     num_segments: int = field()
     num_steps_per_segment: int = field()
+    num_steps: int = field()
     device: str = field(default="cuda")
 
+    @num_steps.default
+    def _calc_num_steps(self):
+        return self.num_segments * self.num_steps_per_segment
+    
     @num_segments.default
     def _calc_num_segments(self):
         return int(self.duration / self.segment_duration)

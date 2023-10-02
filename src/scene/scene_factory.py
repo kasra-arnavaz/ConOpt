@@ -17,6 +17,7 @@ from mesh.mesh import Mesh
 from warp_wrapper.contact_properties import ContactProperties
 from attrs import define
 from abc import ABC, abstractmethod
+from cable.pull_ratio import PullRatio
 
 
 @define
@@ -26,7 +27,7 @@ class SceneFactory(ABC):
     ideal_edge_length: float
     robot_properties: MeshProperties
     robot_transform: Transform
-    cable_pull_ratio: List[torch.Tensor]
+    cable_pull_ratio: PullRatio
     cable_stiffness: float
     cable_damping: float
     device: str = "cuda"

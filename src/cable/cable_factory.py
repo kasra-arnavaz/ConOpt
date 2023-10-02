@@ -2,10 +2,10 @@ import torch
 from typing import List
 from cable.cable import Cable
 from cable.holes import Holes
-
+from cable.pull_ratio import PullRatio
 
 class CableListFactory:
-    def __init__(self, holes: List[Holes], pull_ratio: List[torch.Tensor], stiffness: float, damping: float):
+    def __init__(self, holes: List[Holes], pull_ratio: List[PullRatio], stiffness: float, damping: float):
         self._holes = holes
         self._pull_ratio = pull_ratio
         self._stiffness = stiffness

@@ -54,5 +54,5 @@ class Train:
     def print(self):
         print(f"Iter: {self.i+1}")
         print(f"Loss: {self._loss.get_loss()}")
-        print(f"Grad: {self._optimizer._variables.gradients}")
-        print(f"Alpha: {self._optimizer._variables.parameters}")
+        print(f"Grad: {[round(g.item(), 3) for g in self._optimizer._variables.gradients]}")
+        print(f"Alpha: {[round(p.item(), 3) for p in self._optimizer._variables.parameters]}")

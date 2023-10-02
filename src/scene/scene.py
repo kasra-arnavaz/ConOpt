@@ -42,6 +42,8 @@ class Scene:
         self.robot.nodes = copy.deepcopy(self._initial_robot_nodes)
         self.model.particle_q = self._initial_partilce_q
         self.model.particle_qd = self._initial_partilce_qd
+        for cable in self.robot.cables:
+            cable.pull_ratio.index = 0
 
 @define
 class GripperScene(Scene):

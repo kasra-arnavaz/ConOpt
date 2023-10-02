@@ -18,7 +18,7 @@ class HolesForce:
         for holes_position, holes_velocity, cable in zip(holes_positions, holes_velocities, self._cables):
             force = torch.zeros(holes_position.shape, dtype=torch.float32, device=self._device)
             tangent_vector_pointing_to_the_tip = holes_position[1:] - holes_position[:-1]
-            f = -cable.pull_ratio * cable.stiffness * tangent_vector_pointing_to_the_tip
+            f = -next(cable.pull_ratio) * cable.stiffness * tangent_vector_pointing_to_the_tip
             g = cable.damping * holes_velocity
             force[0] = -f[0] - g[0]
             force[1:-1] = f[:-1] - f[1:] - g[1:-1]
