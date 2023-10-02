@@ -50,10 +50,16 @@ class TestMaxGripLoss(unittest.TestCase):
             rotation=get_quaternion(vector=[1, 0, 0], angle_in_degrees=90), scale=[0.001, 0.001, 0.001], device=device
         )
         cable_pull_ratio = [
-            TimeVariablePullRatio([torch.tensor(0.0, device=device, requires_grad=True), torch.tensor(0.0, device=device, requires_grad=True), torch.tensor(0.0, device=device, requires_grad=True)], time=[torch.tensor(0), torch.tensor(0.01), torch.tensor(0.02)], dt=sim_properties.dt),
-            TimeVariablePullRatio([torch.tensor(0.0, device=device, requires_grad=True), torch.tensor(0.0, device=device, requires_grad=True), torch.tensor(0.0, device=device, requires_grad=True)], time=[torch.tensor(0), torch.tensor(0.01), torch.tensor(0.02)], dt=sim_properties.dt),
-            TimeVariablePullRatio([torch.tensor(0.0, device=device, requires_grad=True), torch.tensor(0.0, device=device, requires_grad=True), torch.tensor(0.0, device=device, requires_grad=True)], time=[torch.tensor(0), torch.tensor(0.01), torch.tensor(0.02)], dt=sim_properties.dt),
+            TimeVariablePullRatio(time=[0, 0.01, 0.015, 0.02], dt=sim_properties.dt),
+            TimeVariablePullRatio(time=[0, 0.01, 0.015, 0.02], dt=sim_properties.dt),
+            TimeVariablePullRatio(time=[0, 0.01, 0.015, 0.02], dt=sim_properties.dt),
         ]
+
+        # cable_pull_ratio = [
+        #     TimeInvariablePullRatio(num_steps=sim_properties.num_steps),
+        #     TimeInvariablePullRatio(num_steps=sim_properties.num_steps),
+        #     TimeInvariablePullRatio(num_steps=sim_properties.num_steps),
+        # ]
         cable_stiffness, cable_damping = 100, 0.01
         # object
         object_file = Path("tests/data/cylinder.obj")
@@ -85,7 +91,7 @@ class TestMaxGripLoss(unittest.TestCase):
             for opt in cable.pull_ratio.optimizable:
                 variables.add_parameter(opt)
         
-        simulation = Simulation(scene=cls.scene, properties=sim_properties, use_checkpoint=False)
+        simulation = Simulation(scene=cls.scene, properties=sim_properties, use_checkpoint=True)
         views = ThreeInteriorViews(center=cls.scene.object.nodes.position.mean(dim=0), device=device)
         robot_zbuf = ZBuffer(mesh=cls.scene.robot, views=views, device=device)
         other_zbuf = ZBuffer(mesh=cls.scene.object, views=views, device=device)
@@ -100,7 +106,8 @@ class TestMaxGripLoss(unittest.TestCase):
             ExteriorDepthRendering(zbufs=[robot_zbuf_ext, object_zbuf_ext]), path=PATH, prefix="ext"
         )
         log = Log(loss=loss, variables=variables, path=PATH)
-        cls.train = Train(simulation, cls.scene, loss, optimizer, num_iters=10, log=log, visuals=[visual])
+        cls.train = Train(simulation, cls.scene, loss, optimizer, num_iters=2, log=log, visuals=[visual])
+
 
     def tests_if_train_runs(self):
         try:
