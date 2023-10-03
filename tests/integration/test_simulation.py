@@ -11,7 +11,7 @@ from point.transform import Transform, get_quaternion
 from mesh.mesh_properties import MeshProperties
 from simulation.simulation_properties import SimulationProperties
 from simulation.update_scene import update_scene
-
+from cable.pull_ratio import TimeInvariablePullRatio
 
 class TestSimulation(unittest.TestCase):
     """Only checks memory and gradients but final mesh needs to be viewed manually
@@ -31,15 +31,18 @@ class TestSimulation(unittest.TestCase):
             youngs_modulus=149_000,
             poissons_ratio=0.40,
             damping_factor=0.4,
-            frozen_bounding_box=[-float("inf"), -0.01, -float("inf"), float("inf"), -float("inf"), float("inf")],
+            frozen_bounding_box=[-float("inf"), -0.01, -float("inf"), float("inf"), float("inf"), float("inf")],
         )
         robot_transform = Transform(
             rotation=get_quaternion(vector=[1, 0, 0], angle_in_degrees=90), scale=[0.001, 0.001, 0.001], device=device
         )
-        cable_pull_ratio = [
-            torch.tensor(0.5, device=device, requires_grad=True),
-            torch.tensor(0.0, device=device, requires_grad=True),
-            torch.tensor(0.0, device=device, requires_grad=True),
+        sim_properties = SimulationProperties(
+            duration=0.02, segment_duration=0.01, dt=2.1701388888888886e-05, device=device
+        )
+        pull_ratio = [
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.5, device=device, requires_grad=True), simulation_properties=sim_properties, device=device),
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device=device, requires_grad=True), simulation_properties=sim_properties, device=device),
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device=device, requires_grad=True), simulation_properties=sim_properties, device=device),
         ]
         cable_stiffness, cable_damping = 100, 0.01
         # object
@@ -55,7 +58,7 @@ class TestSimulation(unittest.TestCase):
             ideal_edge_length=ideal_edge_length,
             robot_properties=robot_properties,
             robot_transform=robot_transform,
-            cable_pull_ratio=cable_pull_ratio,
+            cable_pull_ratio=pull_ratio,
             cable_stiffness=cable_stiffness,
             cable_damping=cable_damping,
             object_file=object_file,
@@ -66,9 +69,7 @@ class TestSimulation(unittest.TestCase):
             make_new_robot=False
         ).create()
 
-        sim_properties = SimulationProperties(
-            duration=0.02, segment_duration=0.01, dt=2.1701388888888886e-05, device=device
-        )
+
         cls.simulation = Simulation(scene=cls.scene, properties=sim_properties)
         update_scene(scene=cls.scene, simulation=cls.simulation, viewer=None)
 
@@ -80,7 +81,8 @@ class TestSimulation(unittest.TestCase):
         loss = self.scene.robot.nodes.position.sum().requires_grad_()
         loss.backward()
         for cable in self.scene.robot.cables:
-            self.assertIsNotNone(cable.pull_ratio.grad)
+            for p in cable.pull_ratio.optimizable:
+                self.assertIsNotNone(p.grad)
 
 
 if __name__ == "__main__":

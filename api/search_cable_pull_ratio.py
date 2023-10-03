@@ -14,7 +14,7 @@ import argparse
 from utils.path import get_next_numbered_path
 from simulation.update_scene import update_scene
 from warp_wrapper.contact_properties import ContactProperties
-
+from cable.pull_ratio import TimeInvariablePullRatio, TimeVariablePullRatio
 
 def main(args):
     config = Config.from_yaml(args.config)
@@ -43,8 +43,11 @@ def main(args):
         scale=config.robot_scale,
         device=DEVICE,
     )
+    sim_properties = SimulationProperties(
+        duration=config.sim_duration, segment_duration=config.sim_segment_duration, dt=config.sim_dt, device=DEVICE
+    )
     config.cable_pull_ratio = args.alpha
-    cable_pull_ratio = [torch.tensor(pull, device=DEVICE) for pull in config.cable_pull_ratio]
+    cable_pull_ratio = [TimeInvariablePullRatio(pull_ratio=torch.tensor(pull, device=DEVICE), simulation_properties=sim_properties, device=DEVICE) for pull in config.cable_pull_ratio]
     cable_stiffness, cable_damping = config.cable_stiffness, config.cable_damping
 
     # object
@@ -90,9 +93,7 @@ def main(args):
         make_new_robot=False
     ).create()
 
-    sim_properties = SimulationProperties(
-        duration=config.sim_duration, segment_duration=config.sim_segment_duration, dt=config.sim_dt, device=DEVICE
-    )
+    
     simulation = Simulation(scene=scene, properties=sim_properties)
     viewer = SceneViewer(scene=scene, path=PATH)
     try:

@@ -12,7 +12,8 @@ from mesh.scad import Scad
 from cable.holes_initial_position import CaterpillarHolesInitialPosition
 from cable.holes_factory import HolesListFactory
 from cable.cable_factory import CableListFactory
-
+from cable.pull_ratio import TimeInvariablePullRatio
+from simulation.simulation_properties import SimulationProperties
 
 class TestHolesForce(unittest.TestCase):
     @classmethod
@@ -22,7 +23,12 @@ class TestHolesForce(unittest.TestCase):
         scad = Scad(file, parameters)
         holes_position = CaterpillarHolesInitialPosition(scad).get()
         holes = HolesListFactory(holes_position, device="cuda").create()
-        pull_ratio = [torch.tensor(0.5, requires_grad=True, device="cuda")] * 3
+        sim_properties = SimulationProperties(dt=0.1, duration=1.0, segment_duration=0.1)
+        pull_ratio = [
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.5, device="cuda"), simulation_properties=sim_properties, device="cuda"),
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.5, device="cuda"), simulation_properties=sim_properties, device="cuda"),
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.5, device="cuda"), simulation_properties=sim_properties, device="cuda"),
+        ]
         cls.cables = CableListFactory(stiffness=100, damping=0.01, pull_ratio=pull_ratio, holes=holes).create()
 
     def test_if_holes_force_is_changed(self):

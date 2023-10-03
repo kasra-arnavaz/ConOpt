@@ -15,6 +15,7 @@ from warp_wrapper.contact_properties import ContactProperties
 from simulation.update_scene import update_scene
 from rendering.z_buffer import ZBuffer
 from rendering.visual import Visual
+from cable.pull_ratio import TimeInvariablePullRatio
 
 class TestRenderingVisualization(unittest.TestCase):
     """Only runs rendering but final images need to be viewed manually
@@ -41,12 +42,15 @@ class TestRenderingVisualization(unittest.TestCase):
             scale=[0.001, 0.001, 0.001],
             device=cls.device,
         )
-        cable_pull_ratio = [
-            torch.tensor(0.5, device=cls.device),
-            torch.tensor(0.0, device=cls.device),
-            torch.tensor(0.0, device=cls.device),
-            torch.tensor(0.5, device=cls.device),
-            torch.tensor(0.0, device=cls.device),
+        sim_properties = SimulationProperties(
+            duration=2.0, segment_duration=0.1, dt=2.1701388888888886e-05, device=cls.device
+        )
+        pull_ratio = [
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.5, device=cls.device), simulation_properties=sim_properties, device=cls.device),
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device=cls.device), simulation_properties=sim_properties, device=cls.device),
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device=cls.device), simulation_properties=sim_properties, device=cls.device),
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.5, device=cls.device), simulation_properties=sim_properties, device=cls.device),
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device=cls.device), simulation_properties=sim_properties, device=cls.device),
         ]
         cable_stiffness, cable_damping = 100, 0.01
         # object
@@ -63,7 +67,7 @@ class TestRenderingVisualization(unittest.TestCase):
             ideal_edge_length=ideal_edge_length,
             robot_properties=robot_properties,
             robot_transform=robot_transform,
-            cable_pull_ratio=cable_pull_ratio,
+            cable_pull_ratio=pull_ratio,
             cable_stiffness=cable_stiffness,
             cable_damping=cable_damping,
             object_file=object_file,
@@ -73,9 +77,7 @@ class TestRenderingVisualization(unittest.TestCase):
             device=cls.device,
             make_new_robot=False
         ).create()
-        sim_properties = SimulationProperties(
-            duration=2.0, segment_duration=0.1, dt=2.1701388888888886e-05, device=cls.device
-        )
+
         simulation = Simulation(scene=cls.scene, properties=sim_properties)
         update_scene(scene=cls.scene, simulation=simulation)
 

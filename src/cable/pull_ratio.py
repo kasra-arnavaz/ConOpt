@@ -34,8 +34,9 @@ class TimeInvariablePullRatio(PullRatio):
 
     def __init__(self, simulation_properties: SimulationProperties, pull_ratio: torch.Tensor = None, device: str = "cuda"):
         super().__init__()
-        self._pull_ratio = pull_ratio or torch.zeros(1, device=device)
+        self._pull_ratio = pull_ratio if pull_ratio is not None else torch.tensor(0.0, device=device)
         self._num_steps = simulation_properties.num_steps
+
     @property
     def optimizable(self):
         return [self._pull_ratio]
@@ -48,7 +49,7 @@ class TimeVariablePullRatio(PullRatio):
     def __init__(self, simulation_properties: SimulationProperties, pull_ratio: List[torch.Tensor] = None, device: str = "cuda"):
         super().__init__()
         self._time = simulation_properties.key_timepoints
-        self._pull_ratio = pull_ratio or [torch.zeros(1, device=device) for _ in range(len(self._time))]
+        self._pull_ratio = pull_ratio if pull_ratio is not None else [torch.tensor(0.0, device=device) for _ in range(len(self._time))]
         self._dt = simulation_properties.dt
         self._device = device
 

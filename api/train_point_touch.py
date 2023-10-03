@@ -25,6 +25,9 @@ from config.config import Config
 import argparse
 from utils.path import get_next_numbered_path
 from rendering.z_buffer import ZBuffer
+from cable.pull_ratio import TimeInvariablePullRatio, TimeVariablePullRatio
+
+
 
 def main(args):
     config = Config.from_yaml(args.config)
@@ -51,9 +54,13 @@ def main(args):
             vector=config.robot_rotation_vector, angle_in_degrees=config.robot_rotation_degrees
         ),
         scale=config.robot_scale,
-        device=DEVICE,
+        device=
+        DEVICE,
     )
-    cable_pull_ratio = [torch.tensor(pull, device=DEVICE) for pull in config.cable_pull_ratio]
+    sim_properties = SimulationProperties(
+        duration=config.sim_duration, segment_duration=config.sim_segment_duration, dt=config.sim_dt, device=DEVICE
+    )
+    cable_pull_ratio = [TimeInvariablePullRatio(pull_ratio=torch.tensor(pull, device=DEVICE), simulation_properties=sim_properties, device=DEVICE) for pull in config.cable_pull_ratio]
     cable_stiffness, cable_damping = config.cable_stiffness, config.cable_damping
 
     # object
@@ -106,10 +113,9 @@ def main(args):
 
     variables = Variables()
     for cable in scene.robot.cables:
-        variables.add_parameter(cable.pull_ratio)
-    sim_properties = SimulationProperties(
-        duration=config.sim_duration, segment_duration=config.sim_segment_duration, dt=config.sim_dt, device=DEVICE
-    )
+        for opt in cable.pull_ratio.optimizable:
+            variables.add_parameter(opt)
+   
     simulation = Simulation(scene=scene, properties=sim_properties, use_checkpoint=config.use_checkpoint)
     # point touch with obstacle avoidance loss
     views_obstacle_0 = SixInteriorViews(center=scene.obstacles[0].nodes.position.mean(dim=0), device=DEVICE)

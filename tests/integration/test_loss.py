@@ -15,6 +15,7 @@ from scene.scene_factory import GripperSceneFactory, TouchSceneFactory
 from simulation.update_scene import update_scene
 from warp_wrapper.contact_properties import ContactProperties
 from rendering.z_buffer import ZBuffer
+from cable.pull_ratio import TimeInvariablePullRatio
 
 class TestMaxGripLoss(unittest.TestCase):
     @classmethod
@@ -38,10 +39,13 @@ class TestMaxGripLoss(unittest.TestCase):
             scale=[0.001, 0.001, 0.001],
             device=cls.device,
         )
-        cable_pull_ratio = [
-            torch.tensor(0.5, device=cls.device),
-            torch.tensor(0.0, device=cls.device),
-            torch.tensor(0.0, device=cls.device),
+        sim_properties = SimulationProperties(
+            duration=0.02, segment_duration=0.01, dt=2.1701388888888886e-05, device=cls.device
+        )
+        pull_ratio = [
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.5, device="cuda"), simulation_properties=sim_properties, device="cuda"),
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device="cuda"), simulation_properties=sim_properties, device="cuda"),
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device="cuda"), simulation_properties=sim_properties, device="cuda"),
         ]
         cable_stiffness, cable_damping = 100, 0.01
         # object
@@ -58,7 +62,7 @@ class TestMaxGripLoss(unittest.TestCase):
             ideal_edge_length=ideal_edge_length,
             robot_properties=robot_properties,
             robot_transform=robot_transform,
-            cable_pull_ratio=cable_pull_ratio,
+            cable_pull_ratio=pull_ratio,
             cable_stiffness=cable_stiffness,
             cable_damping=cable_damping,
             object_file=object_file,
@@ -68,9 +72,7 @@ class TestMaxGripLoss(unittest.TestCase):
             device=cls.device,
             make_new_robot=False
         ).create()
-        sim_properties = SimulationProperties(
-            duration=0.02, segment_duration=0.01, dt=2.1701388888888886e-05, device=cls.device
-        )
+        
         simulation = Simulation(scene=cls.scene, properties=sim_properties)
         update_scene(scene=cls.scene, simulation=simulation)
         views = ThreeInteriorViews(center=cls.scene.object.nodes.position.mean(dim=0), device=cls.device)
@@ -105,10 +107,13 @@ class TestPointTouchLoss(unittest.TestCase):
             scale=[0.001, 0.001, 0.001],
             device=cls.device,
         )
-        cable_pull_ratio = [
-            torch.tensor(0.5, device=cls.device),
-            torch.tensor(0.0, device=cls.device),
-            torch.tensor(0.0, device=cls.device),
+        sim_properties = SimulationProperties(
+            duration=0.02, segment_duration=0.01, dt=2.1701388888888886e-05, device=cls.device
+        )
+        pull_ratio = [
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.5, device="cuda"), simulation_properties=sim_properties, device="cuda"),
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device="cuda"), simulation_properties=sim_properties, device="cuda"),
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device="cuda"), simulation_properties=sim_properties, device="cuda"),
         ]
         cable_stiffness, cable_damping = 100, 0.01
         # object
@@ -125,7 +130,7 @@ class TestPointTouchLoss(unittest.TestCase):
             ideal_edge_length=ideal_edge_length,
             robot_properties=robot_properties,
             robot_transform=robot_transform,
-            cable_pull_ratio=cable_pull_ratio,
+            cable_pull_ratio=pull_ratio,
             cable_stiffness=cable_stiffness,
             cable_damping=cable_damping,
             object_file=object_file,
@@ -135,9 +140,6 @@ class TestPointTouchLoss(unittest.TestCase):
             device=cls.device,
             make_new_robot=False
         ).create()
-        sim_properties = SimulationProperties(
-            duration=0.02, segment_duration=0.01, dt=2.1701388888888886e-05, device=cls.device
-        )
         simulation = Simulation(scene=cls.scene, properties=sim_properties)
         update_scene(scene=cls.scene, simulation=simulation)
 
@@ -167,10 +169,13 @@ class TestObstacleAvoidanceLoss(unittest.TestCase):
             scale=[0.001, 0.001, 0.001],
             device=cls.device,
         )
-        cable_pull_ratio = [
-            torch.tensor(0.0654, device=cls.device),
-            torch.tensor(0.1431, device=cls.device),
-            torch.tensor(0.8293, device=cls.device),
+        sim_properties = SimulationProperties(
+            duration=0.02, segment_duration=0.01, dt=2.1701388888888886e-05, device=cls.device
+        )
+        pull_ratio = [
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.5, device="cuda"), simulation_properties=sim_properties, device="cuda"),
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device="cuda"), simulation_properties=sim_properties, device="cuda"),
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device="cuda"), simulation_properties=sim_properties, device="cuda"),
         ]
         cable_stiffness, cable_damping = 100, 0.01
         # object
@@ -194,7 +199,7 @@ class TestObstacleAvoidanceLoss(unittest.TestCase):
         ideal_edge_length=ideal_edge_length,
         robot_properties=robot_properties,
         robot_transform=robot_transform,
-        cable_pull_ratio=cable_pull_ratio,
+        cable_pull_ratio=pull_ratio,
         cable_stiffness=cable_stiffness,
         cable_damping=cable_damping,
         object_file=object_file,
@@ -207,9 +212,7 @@ class TestObstacleAvoidanceLoss(unittest.TestCase):
         device=cls.device,
         make_new_robot=False
         ).create()
-        sim_properties = SimulationProperties(
-            duration=0.02, segment_duration=0.01, dt=2.1701388888888886e-05, device=cls.device
-        )
+        
         simulation = Simulation(scene=cls.scene, properties=sim_properties)
         update_scene(scene=cls.scene, simulation=simulation)
         views_obstacle_0 = SixInteriorViews(center=cls.scene.obstacles[0].nodes.position.mean(dim=0), device=cls.device)
@@ -223,7 +226,7 @@ class TestObstacleAvoidanceLoss(unittest.TestCase):
         cls.rendering = [InteriorContactRendering(robot_zbuf=rz, other_zbuf=oz) for rz, oz in zip(robot_zbufs, obstacle_zbufs)]
 
     def tests_if_max_grip_loss_is_of_type_torch_tensor(self):
-        loss = ObstacleAvoidanceLoss(self.rendering[0], device=self.device) + ObstacleAvoidanceLoss(self.rendering[1], device=self.device)
+        loss = ObstacleAvoidanceLoss(self.rendering[0], device=self.device).get_loss() + ObstacleAvoidanceLoss(self.rendering[1], device=self.device).get_loss()
         self.assertIsInstance(loss, torch.Tensor)
 
 
