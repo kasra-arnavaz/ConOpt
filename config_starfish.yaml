@@ -27,11 +27,21 @@ robot_scale:
 - 0.001
 - 0.001
 cable_pull_ratio:
-- 0.8
-- 0.8
-- 0.8
-- 0.8
-- 0.8
+- - 0.0
+  - 1.2
+  - 0.0
+- - 0.0
+  - 1.2
+  - 0.0
+- - 0.0
+  - 0.0
+  - 0.0
+- - 0.0
+  - 0.0
+  - 0.0
+- - 0.0
+  - 0.0
+  - 0.0
 cable_stiffness: 100
 cable_damping: 0.1
 object_file: tests/data/cylinder.obj
@@ -54,9 +64,10 @@ contact_ke: 10
 contact_kd: 1
 contact_kf: 0.1
 ground: true
-sim_duration: 1.0
+sim_duration: 10.0
 sim_segment_duration: 0.1
 sim_dt: 5.0e-05
+key_timepoints_interval: 1.0
 learning_rate: 1.0e-3
 num_training_iterations: 100
 device: cuda

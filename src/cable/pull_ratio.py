@@ -15,14 +15,14 @@ class PullRatio(ABC):
     def __init__(self):
         self.index = 0
         self.direction = 1
+        self.data = self.get()
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        data = self.get()
-        item = data[self.index]
-        if self.index == len(data) - 1:
+        item = self.data[self.index]
+        if self.index == len(self.data) - 1:
             self.direction = -1
         elif self.index == 0 and self.direction == -1:
             self.direction = 1
@@ -33,9 +33,9 @@ class PullRatio(ABC):
 class TimeInvariablePullRatio(PullRatio):
 
     def __init__(self, simulation_properties: SimulationProperties, pull_ratio: torch.Tensor = None, device: str = "cuda"):
-        super().__init__()
         self._pull_ratio = pull_ratio if pull_ratio is not None else torch.tensor(0.0, device=device)
         self._num_steps = simulation_properties.num_steps
+        super().__init__()
 
     @property
     def optimizable(self):
@@ -47,11 +47,12 @@ class TimeInvariablePullRatio(PullRatio):
 class TimeVariablePullRatio(PullRatio):
 
     def __init__(self, simulation_properties: SimulationProperties, pull_ratio: List[torch.Tensor] = None, device: str = "cuda"):
-        super().__init__()
         self._time = simulation_properties.key_timepoints
         self._pull_ratio = pull_ratio if pull_ratio is not None else [torch.tensor(0.0, device=device) for _ in range(len(self._time))]
         self._dt = simulation_properties.dt
         self._device = device
+        super().__init__()
+
 
     @property
     def optimizable(self):

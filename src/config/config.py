@@ -46,6 +46,7 @@ class Config:
     obstacle_rotation_vector: list = None
     obstacle_rotation_degrees: list = None
     obstacle_scale: list = None
+    key_timepoints_interval: float = None
 
     @classmethod
     def from_dict(cls, d):
