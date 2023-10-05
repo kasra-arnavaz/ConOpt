@@ -71,7 +71,7 @@ def main(args):
     ).create()
 
     simulation = Simulation(scene=scene, properties=sim_properties)
-    viewer = SceneViewer(scene=scene, path=PATH, speed_factor=0.5)
+    viewer = SceneViewer(scene=scene, path=PATH, speed_factor=1.0)
     update_scene(scene=scene, simulation=simulation, viewer=viewer)
 
 
