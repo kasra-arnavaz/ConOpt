@@ -31,7 +31,7 @@ class TestTainWithTimeInvariablePullRatio(unittest.TestCase):
     def setUpClass(cls):
         device = "cuda"
         sim_properties = SimulationProperties(
-            duration=0.02, segment_duration=0.01, dt=5.e-05, key_timepoints=[0., 0.01, 0.02], device=device
+            duration=0.02, segment_duration=0.01, dt=5.e-05, device=device
         )
         # robot
         msh_file = Path("data/long_caterpillar.msh")
@@ -110,13 +110,13 @@ class TestTainWithTimeInvariablePullRatio(unittest.TestCase):
         except:
             self.fail()
 
-
+# @unittest.skip
 class TestTainWithTimeVariablePullRatio(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         device = "cuda"
-        sim_properties = SimulationProperties(
-            duration=0.02, segment_duration=0.01, dt=5.e-05, key_timepoints=[0., 0.01, 0.02], device=device
+        cls.sim_properties = SimulationProperties(
+            duration=0.02, segment_duration=0.01, dt=5e-05, key_timepoints_interval=0.01, device=device
         )
         # robot
         msh_file = Path("data/long_caterpillar.msh")
@@ -135,9 +135,9 @@ class TestTainWithTimeVariablePullRatio(unittest.TestCase):
             rotation=get_quaternion(vector=[1, 0, 0], angle_in_degrees=90), scale=[0.001, 0.001, 0.001], device=device
         )
         cable_pull_ratio = [
-            TimeVariablePullRatio(simulation_properties=sim_properties),
-            TimeVariablePullRatio(simulation_properties=sim_properties),
-            TimeVariablePullRatio(simulation_properties=sim_properties),
+            TimeVariablePullRatio(simulation_properties=cls.sim_properties),
+            TimeVariablePullRatio(simulation_properties=cls.sim_properties),
+            TimeVariablePullRatio(simulation_properties=cls.sim_properties),
         ]
         cable_stiffness, cable_damping = 100, 0.01
         # object
@@ -170,7 +170,7 @@ class TestTainWithTimeVariablePullRatio(unittest.TestCase):
             for opt in cable.pull_ratio.optimizable:
                 variables.add_parameter(opt)
         
-        simulation = Simulation(scene=cls.scene, properties=sim_properties, use_checkpoint=True)
+        simulation = Simulation(scene=cls.scene, properties=cls.sim_properties, use_checkpoint=False)
         views = ThreeInteriorViews(center=cls.scene.object.nodes.position.mean(dim=0), device=device)
         robot_zbuf = ZBuffer(mesh=cls.scene.robot, views=views, device=device)
         other_zbuf = ZBuffer(mesh=cls.scene.object, views=views, device=device)
@@ -185,7 +185,7 @@ class TestTainWithTimeVariablePullRatio(unittest.TestCase):
             ExteriorDepthRendering(zbufs=[robot_zbuf_ext, object_zbuf_ext]), path=PATH, prefix="ext"
         )
         log = Log(loss=loss, variables=variables, path=PATH)
-        cls.train = Train(simulation, cls.scene, loss, optimizer, num_iters=2, log=log, visuals=[visual])
+        cls.train = Train(simulation, cls.scene, loss, optimizer, num_iters=10, log=log, visuals=[visual])
 
 
     def tests_if_train_runs_with_time_variable_pull_ratio(self):

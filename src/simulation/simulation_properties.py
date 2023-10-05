@@ -13,7 +13,7 @@ class SimulationProperties:
     num_steps: int = field(init=False)
     device: str = field(default="cuda")
     key_timepoints_interval: float = field(default=None)
-    key_timepoints: List[float] = field(init=False)
+    key_timepoints: torch.Tensor = field(init=False)
 
     @num_steps.default
     def _calc_num_steps(self):
@@ -29,13 +29,16 @@ class SimulationProperties:
     
     @key_timepoints.default
     def _calc_key_timepoints(self):
+        if self.key_timepoints_interval is None:
+            return None
         steps = int(self.duration/self.key_timepoints_interval) + 1
-        return torch.linspace(0, self.duration, steps=steps).tolist()
+        return torch.linspace(0.0, self.duration, steps=steps, dtype=torch.float64)
 
     @key_timepoints_interval.validator
     def _check_compatibility_of_duration(self, attribute, value):
-        if self._x_not_a_multiplier_of_y(self.key_timepoints_interval, self.duration):
-            raise ValueError(f"Expected <{attribute.name}> to be a multiplier of <duration>.")
+        if value is not None:
+            if self._x_not_a_multiplier_of_y(self.key_timepoints_interval, self.duration):
+                raise ValueError(f"Expected <{attribute.name}> to be a multiplier of <duration>.")
     
     @segment_duration.validator
     def _check_compatibility(self, attribute, value):
