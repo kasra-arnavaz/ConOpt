@@ -43,9 +43,9 @@ class Scene:
         self.model.particle_q = self._initial_partilce_q
         self.model.particle_qd = self._initial_partilce_qd
         for cable in self.robot.cables:
-            cable.pull_ratio.index = 0
-            cable.pull_ratio.ascending = True
-            cable.pull_ratio.pull_ratio = cable.pull_ratio.update()
+            cable.pull_ratio.update_pull_ratio()
+            cable.pull_ratio.update_iterator()
+            
 @define
 class GripperScene(Scene):
     robot: Mesh = field()

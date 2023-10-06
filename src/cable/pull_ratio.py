@@ -4,54 +4,36 @@ from typing import List
 import sys
 sys.path.append("src")
 from simulation.simulation_properties import SimulationProperties
+from simulation.segment_iterator import SegmentIterator
 from functools import cached_property
 
 class PullRatio(ABC):
 
+    def __init__(self, sim_properties: SimulationProperties):
+        self._sim_properties = sim_properties
+        self.update_pull_ratio()
+        self.update_iterator()
+
     @abstractmethod
-    def update(self) -> List[torch.Tensor]:
+    def update_pull_ratio(self) -> None:
         pass
 
-    @cached_property
-    def pull_ratio(self):
-        return self.update()
-
-    def __init__(self):
-        self.index = 0
-        self.ascending = True
-
-    def __iter__(self):
-        return self
-    
-    def __next__(self):
-        item = self.pull_ratio[self.index]
-        if self.ascending:
-            self.index += 1
-            if self.index == len(self.pull_ratio):
-                self.ascending = False
-                self.index -= 1
-        else:
-            self.index -= 1
-            if self.index < 0:
-                self.ascending = True
-                self.index = 0
-        return item
-
-
+    def update_iterator(self) -> None:
+        self.iterator = SegmentIterator(lst=self.pull_ratio, num_segments=self._sim_properties.num_segments)
 
 class TimeInvariablePullRatio(PullRatio):
 
     def __init__(self, simulation_properties: SimulationProperties, pull_ratio: torch.Tensor = None, device: str = "cuda"):
         self._pull_ratio = pull_ratio if pull_ratio is not None else torch.tensor(0.0, device=device, requires_grad=True)
         self._num_steps = simulation_properties.num_steps
-        super().__init__()
+        super().__init__(simulation_properties)
 
     @property
     def optimizable(self):
         return [self._pull_ratio]
 
-    def update(self):
-        return [self._pull_ratio] * self._num_steps
+    def update_pull_ratio(self):
+        self.pull_ratio = [self._pull_ratio] * self._num_steps
     
 
 class TimeVariablePullRatio(PullRatio):
@@ -61,13 +43,13 @@ class TimeVariablePullRatio(PullRatio):
         self._pull_ratio = pull_ratio if pull_ratio is not None else [torch.tensor(0.0, device=device, requires_grad=True) for _ in range(len(self._time))]
         self._dt = simulation_properties.dt
         self._device = device
-        super().__init__()
+        super().__init__(simulation_properties)
 
     @property
     def optimizable(self):
         return self._pull_ratio
 
-    def update(self):
+    def update_pull_ratio(self):
         tensor = torch.empty(0, device=self._device)
         optimizable = self.optimizable
         for i in range(len(self._pull_ratio)-1):
@@ -84,4 +66,4 @@ class TimeVariablePullRatio(PullRatio):
                 out.append(optimizable[idx])
             else:
                 out.append(t)
-        return out
+        self.pull_ratio = out

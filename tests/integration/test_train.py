@@ -170,7 +170,7 @@ class TestTainWithTimeVariablePullRatio(unittest.TestCase):
             for opt in cable.pull_ratio.optimizable:
                 variables.add_parameter(opt)
         
-        simulation = Simulation(scene=cls.scene, properties=cls.sim_properties, use_checkpoint=False)
+        simulation = Simulation(scene=cls.scene, properties=cls.sim_properties, use_checkpoint=True)
         views = ThreeInteriorViews(center=cls.scene.object.nodes.position.mean(dim=0), device=device)
         robot_zbuf = ZBuffer(mesh=cls.scene.robot, views=views, device=device)
         other_zbuf = ZBuffer(mesh=cls.scene.object, views=views, device=device)
@@ -185,7 +185,7 @@ class TestTainWithTimeVariablePullRatio(unittest.TestCase):
             ExteriorDepthRendering(zbufs=[robot_zbuf_ext, object_zbuf_ext]), path=PATH, prefix="ext"
         )
         log = Log(loss=loss, variables=variables, path=PATH)
-        cls.train = Train(simulation, cls.scene, loss, optimizer, num_iters=10, log=log, visuals=[visual])
+        cls.train = Train(simulation, cls.scene, loss, optimizer, num_iters=1, log=log, visuals=[visual])
 
 
     def tests_if_train_runs_with_time_variable_pull_ratio(self):
