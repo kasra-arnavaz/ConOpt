@@ -13,13 +13,12 @@ class HolesForce:
         self._device = device
         self._cables = cables
 
-    def __call__(self, holes_positions: List[torch.Tensor], holes_velocities: List[torch.Tensor], p0, p1, p2) -> List[torch.Tensor]:
+    def __call__(self, holes_positions: List[torch.Tensor], holes_velocities: List[torch.Tensor]) -> List[torch.Tensor]:
         holes_forces = []
-        p = [p0, p1, p2]
-        for holes_position, holes_velocity, cable, pi in zip(holes_positions, holes_velocities, self._cables, p):
+        for holes_position, holes_velocity, cable in zip(holes_positions, holes_velocities, self._cables):
             force = torch.zeros(holes_position.shape, dtype=torch.float32, device=self._device)
             tangent_vector_pointing_to_the_tip = holes_position[1:] - holes_position[:-1]
-            f = -pi * cable.stiffness * tangent_vector_pointing_to_the_tip
+            f = -next(cable.pull_ratio.iterator) * cable.stiffness * tangent_vector_pointing_to_the_tip
             g = cable.damping * holes_velocity
             force[0] = -f[0] - g[0]
             force[1:-1] = f[:-1] - f[1:] - g[1:-1]

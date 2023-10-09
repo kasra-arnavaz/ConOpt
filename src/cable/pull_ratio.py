@@ -56,14 +56,7 @@ class TimeVariablePullRatio(PullRatio):
             steps = int((self._time[i+1] - self._time[i]) / self._dt) + 1
             weight = torch.linspace(0.,1.,steps).to(self._device)
             linear = torch.lerp(input=self._pull_ratio[i], end=self._pull_ratio[i+1], weight=weight)[:-1]
+            linear[0] = self._pull_ratio[i]
+            linear[-1] = self._pull_ratio[i+1]
             tensor = torch.cat((tensor, linear))
-        # index = (self._time/self._dt).to(int)
-        index = torch.tensor([0, 200, 399])
-        out = []
-        for i, t in enumerate(tensor):
-            if i in index:
-                idx = torch.where(index == i)[0]
-                out.append(optimizable[idx])
-            else:
-                out.append(t)
-        self.pull_ratio = out
+        self.pull_ratio = [t for t in tensor]

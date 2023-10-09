@@ -116,7 +116,7 @@ class TestTainWithTimeVariablePullRatio(unittest.TestCase):
     def setUpClass(cls):
         device = "cuda"
         cls.sim_properties = SimulationProperties(
-            duration=0.02, segment_duration=0.01, dt=5e-05, key_timepoints_interval=0.01, device=device
+            duration=0.02, segment_duration=0.02, dt=5e-05, key_timepoints_interval=0.01, device=device
         )
         # robot
         msh_file = Path("data/long_caterpillar.msh")
@@ -185,7 +185,7 @@ class TestTainWithTimeVariablePullRatio(unittest.TestCase):
             ExteriorDepthRendering(zbufs=[robot_zbuf_ext, object_zbuf_ext]), path=PATH, prefix="ext"
         )
         log = Log(loss=loss, variables=variables, path=PATH)
-        cls.train = Train(simulation, cls.scene, loss, optimizer, num_iters=1, log=log, visuals=[visual])
+        cls.train = Train(simulation, cls.scene, loss, optimizer, num_iters=3, log=log, visuals=[visual])
 
 
     def tests_if_train_runs_with_time_variable_pull_ratio(self):

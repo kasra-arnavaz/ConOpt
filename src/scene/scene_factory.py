@@ -12,7 +12,6 @@ from cable.cable_factory import CableListFactory
 from scene.scene import GripperScene, TouchScene, Scene
 from os import PathLike
 from typing import List
-import torch
 from mesh.mesh import Mesh
 from warp_wrapper.contact_properties import ContactProperties
 from attrs import define
@@ -74,7 +73,7 @@ class GripperSceneFactory(SceneFactory):
     ideal_edge_length: float
     robot_properties: MeshProperties
     robot_transform: Transform
-    cable_pull_ratio: List[torch.Tensor]
+    cable_pull_ratio: PullRatio
     cable_stiffness: float
     cable_damping: float
     object_file: PathLike
@@ -105,7 +104,7 @@ class TouchSceneFactory(GripperSceneFactory):
     ideal_edge_length: float
     robot_properties: MeshProperties
     robot_transform: Transform
-    cable_pull_ratio: List[torch.Tensor]
+    cable_pull_ratio: PullRatio
     cable_stiffness: float
     cable_damping: float
     object_file: PathLike
@@ -142,7 +141,7 @@ class StarfishSceneFactory(SceneFactory):
     ideal_edge_length: float
     robot_properties: MeshProperties
     robot_transform: Transform
-    cable_pull_ratio: List[torch.Tensor]
+    cable_pull_ratio: PullRatio
     cable_stiffness: float
     cable_damping: float
     contact_properties: ContactProperties
