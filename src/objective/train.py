@@ -39,11 +39,13 @@ class Train:
             colour="blue",
             disable=verbose,
         ):
-            for visual in self._visuals:
-                visual.save_images(str(self.i)) if visual is not None and self.i == 0 else None
+            if self._visuals is not None:
+                for visual in self._visuals:
+                    visual.save_images(str(self.i)) if self.i == 0 else None
             update_scene(scene=self._scene, simulation=self._simulation)
-            for visual in self._visuals:
-                visual.save_images(str(self.i + 1)) if visual is not None else None
+            if self._visuals is not None:
+                for visual in self._visuals:
+                    visual.save_images(str(self.i + 1))
             self._loss.backward()
             self._optimizer.step()
             self.print() if verbose else None

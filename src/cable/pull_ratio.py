@@ -42,6 +42,8 @@ class TimeVariablePullRatio(PullRatio):
     def __init__(self, simulation_properties: SimulationProperties, pull_ratio: List[torch.Tensor] = None, device: str = "cuda"):
         self._time = simulation_properties.key_timepoints
         self._pull_ratio = pull_ratio if pull_ratio is not None else [torch.tensor(0.0, device=device, requires_grad=True) for _ in range(len(self._time))]
+        if len(self._time) != len(self._pull_ratio):
+            raise ValueError(f"Expected <pull_ratio> to be of length {len(self._time)}, got {len(self._pull_ratio)}.")
         self._dt = simulation_properties.dt
         self._device = device
         super().__init__(simulation_properties)

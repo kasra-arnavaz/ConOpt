@@ -70,4 +70,13 @@ class PointTouchWithObstacleAvoidanceLoss(Loss):
         for obstacle_avoidance_loss in self._obstacle_avoidance_losses:
             loss = loss + obstacle_avoidance_loss.get_loss()
         return loss
+    
+class LocomotionLoss(Loss):
+    def __init__(self, scene: Scene, target_position: torch.Tensor):
+        self._scene = scene
+        self._target_position = target_position
+
+    def get_loss(self):
+        output_position = self._scene.robot.nodes.position.mean(dim=0)
+        return torch.sum((output_position - self._target_position) ** 2)
 

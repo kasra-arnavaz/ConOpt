@@ -30,16 +30,56 @@ cable_pull_ratio:
 - - 0.0
   - 1.2
   - 0.0
+  - 1.2
+  - 0.0
+  - 1.2
+  - 0.0
+  - 1.2
+  - 0.0
+  - 1.2
+  - 0.0
 - - 0.0
+  - 1.2
+  - 0.0
+  - 1.2
+  - 0.0
+  - 1.2
+  - 0.0
+  - 1.2
+  - 0.0
   - 1.2
   - 0.0
 - - 0.0
   - 0.0
   - 0.0
-- - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
   - 0.0
   - 0.0
 - - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+- - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
   - 0.0
   - 0.0
 cable_stiffness: 100
@@ -68,8 +108,12 @@ sim_duration: 10.0
 sim_segment_duration: 0.1
 sim_dt: 5.0e-05
 key_timepoints_interval: 1.0
-learning_rate: 1.0e-3
+learning_rate: 10.0
 num_training_iterations: 100
 device: cuda
 use_checkpoint: true
-out_path: .dev/short
+out_path: .dev/locomotion
+target_position:
+- 0.3144
+- 0.0177
+- 0.0282

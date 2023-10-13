@@ -56,7 +56,8 @@ def main():
         obstacle_rotation_vector=[[0,0,1], [0,0,1]],
         obstacle_rotation_degrees=[90.0, 90.0],
         obstacle_scale=[[0.0015, 0.0015, 0.01], [0.0015, 0.0015, 0.01]],
-        key_timepoints_intervals = 1.0
+        key_timepoints_intervals = 1.0,
+        target_position = [0.3144, 0.0177, 0.0282]
     )
     config.to_yaml(path=".", name="config_long_touch_with_obstacle")
 
