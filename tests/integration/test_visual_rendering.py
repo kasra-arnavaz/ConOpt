@@ -85,7 +85,8 @@ class TestRenderingVisualization(unittest.TestCase):
         views = SixExteriorViews(distance=0.5, device=self.device)
         zbufs = [ZBuffer(mesh=mesh, views=views, device=self.device) for mesh in self.scene.all_meshes()]
         rendering = ExteriorDepthRendering(zbufs)
-        Visual(rendering=rendering, path=".tmp", prefix="ext").save_images(name="test")
+        Visual(rendering=rendering, path=".tmp", prefix="exterior").save_images(name="test")
+        print("CHECK .tmp/exterior_test.usd")
 
     def tests_if_interior_gap_rendering_runs_given_six_views(self):
         views = SixInteriorViews(center=self.scene.object.nodes.position.mean(dim=0), device=self.device)
@@ -93,6 +94,7 @@ class TestRenderingVisualization(unittest.TestCase):
         other_zbuf = ZBuffer(mesh=self.scene.object, views=views, device=self.device)
         rendering = InteriorGapRendering(robot_zbuf=robot_zbuf, other_zbuf=other_zbuf)
         Visual(rendering=rendering, path=".tmp", prefix="gap").save_images(name="test")
+        print("CHECK .tmp/gap_test.usd")
 
 
     def tests_if_interior_contact_rendering_runs_given_six_views(self):
@@ -101,6 +103,8 @@ class TestRenderingVisualization(unittest.TestCase):
         other_zbuf = ZBuffer(mesh=self.scene.object, views=views, device=self.device)
         rendering = InteriorContactRendering(robot_zbuf=robot_zbuf, other_zbuf=other_zbuf)
         Visual(rendering=rendering, path=".tmp", prefix="contact").save_images(name="test")
+        print("CHECK .tmp/contact_test.usd")
+
 
 
 

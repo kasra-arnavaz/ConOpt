@@ -25,7 +25,6 @@ from objective.log import Log
 from rendering.z_buffer import ZBuffer
 from cable.pull_ratio import TimeInvariablePullRatio, TimeVariablePullRatio
 
-@unittest.skip
 class TestTainWithTimeInvariablePullRatio(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -110,7 +109,6 @@ class TestTainWithTimeInvariablePullRatio(unittest.TestCase):
         except:
             self.fail()
 
-# @unittest.skip
 class TestTainWithTimeVariablePullRatio(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

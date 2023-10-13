@@ -14,7 +14,7 @@ class TestVariables(unittest.TestCase):
 
     def tests_if_torch_tensor_is_added_to_parameters(self):
         variables = Variables()
-        variables.add_parameter(torch.tensor([1.0, 1.0, 1.0]))
+        variables.add_parameter(torch.tensor([1.0, 1.0, 1.0], requires_grad=True))
         self.assertTrue(torch.equal(variables.parameters[0], torch.tensor([1.0, 1.0, 1.0])))
 
     def tests_if_value_error_is_raised_when_numpy_array_is_added_to_parameters(self):
@@ -25,7 +25,7 @@ class TestVariables(unittest.TestCase):
 
     def tests_if_gradients_are_correct(self):
         variables = Variables()
-        p = torch.tensor([1.0, 2.0, 3.0])
+        p = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)
         variables.add_parameter(p)
         loss = (p**2).sum()
         loss.backward()

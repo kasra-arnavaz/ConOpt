@@ -6,6 +6,7 @@ sys.path.append("src")
 from simulation.simulation_properties import SimulationProperties
 from simulation.segment_iterator import SegmentIterator
 from functools import cached_property
+from utils.interpolate import linear_interpolate
 
 class PullRatio(ABC):
 
@@ -47,22 +48,9 @@ class TimeVariablePullRatio(PullRatio):
 
     @property
     def optimizable(self):
-        index = (self._time/self._dt).to(dtype=torch.int32).tolist()
-        index[-1] = -1
-        return [self.pull_ratio[i] for i in index]
+        return self._pull_ratio
 
     def update_pull_ratio(self):
-        tensor = torch.empty(0, device=self._device)
-        for i in range(len(self._pull_ratio)-1):
-            steps = int((self._time[i+1] - self._time[i]) / self._dt) + 1
-            weight = torch.linspace(0.,1.,steps).to(self._device)
-            linear = torch.lerp(input=self._pull_ratio[i], end=self._pull_ratio[i+1], weight=weight)[:-1]
-            linear[0] = self._pull_ratio[i]
-            linear[-1] = self._pull_ratio[i+1]
-            tensor = torch.cat((tensor, linear))
-        self.pull_ratio = [t for t in tensor]
-
-    # def update_pull_ratio(self):
-    #     self.pull_ratio = [torch.tensor(0., device=self._device, requires_grad=True) for i in range(self._sim_properties.num_steps)]
-
+        t = torch.arange(0, self._sim_properties.duration, self._dt)
+        self.pull_ratio = linear_interpolate(self._time, self._pull_ratio, t, self._device)
 

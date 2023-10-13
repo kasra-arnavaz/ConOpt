@@ -18,7 +18,6 @@ class UpdateState(torch.autograd.Function):
         model: Model,
         dt: float,
     ):
-        # print("forward")
         ctx.state_now = model.state(requires_grad=True)
         ctx.state_next = model.state(requires_grad=True)
         ctx.tape = wp.Tape()

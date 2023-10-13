@@ -12,7 +12,6 @@ class SegmentIterator:
         return self
 
     def __next__(self):
-        # print(self.index)
         value = self.lst[self.index]
         self.step_index += 1
         if self.step_index == self.segment_length: #reached end of segment

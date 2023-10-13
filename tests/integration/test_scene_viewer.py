@@ -32,7 +32,7 @@ class TestSceneViewer(unittest.TestCase):
             youngs_modulus=149_000,
             poissons_ratio=0.40,
             damping_factor=0.4,
-            frozen_bounding_box=[-float("inf"), -0.01, -float("inf"), float("inf"), -float("inf"), float("inf")],
+            frozen_bounding_box=[-float("inf"), -0.01, -float("inf"), float("inf"), float("inf"), float("inf")],
         )
         robot_transform = Transform(
             rotation=get_quaternion(vector=[1, 0, 0], angle_in_degrees=90), scale=[0.001, 0.001, 0.001], device=device
@@ -78,6 +78,7 @@ class TestSceneViewer(unittest.TestCase):
     def tests_if_simulation_runs_with_viewer(self):
         try:
             update_scene(scene=self.scene, simulation=self.simulation, viewer=self.viewer)
+            print("CHECK .tmp/scene.usd")
         except:
             self.fail()
 

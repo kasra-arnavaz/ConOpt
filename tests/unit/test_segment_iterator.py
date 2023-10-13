@@ -7,10 +7,12 @@ import torch
 class TestSegmentIterator(unittest.TestCase):
 
     def tests_segment_iterator(self):
-        lst = torch.arange(400).tolist()
-        iterator = SegmentIterator(lst=lst, num_segments=2)
-        for i in range(801):
-            print(next(iterator))
+        length = 6
+        lst = torch.arange(length).tolist()
+        iterator = SegmentIterator(lst=lst, num_segments=3)
+        actual = [next(iterator) for _ in range(length*2)]
+        expected = [0, 1, 2, 3, 4, 5, 4, 5, 2, 3, 0, 1]
+        self.assertEqual(actual, expected)
 
 if __name__ == "__main__":
     unittest.main()
