@@ -49,14 +49,21 @@ class TimeVariablePullRatio(PullRatio):
     def optimizable(self):
         return self._pull_ratio
 
+    # def update_pull_ratio(self):
+        # tensor = torch.empty(0, device=self._device)
+        # optimizable = self.optimizable
+        # for i in range(len(self._pull_ratio)-1):
+        #     steps = int((self._time[i+1] - self._time[i]) / self._dt) + 1
+        #     weight = torch.linspace(0.,1.,steps).to(self._device)
+        #     linear = torch.lerp(input=self._pull_ratio[i], end=self._pull_ratio[i+1], weight=weight)[:-1]
+        #     linear[0] = self._pull_ratio[i]
+        #     linear[-1] = self._pull_ratio[i+1]
+        #     tensor = torch.cat((tensor, linear))
+        # self.pull_ratio = [t for t in tensor]
+
     def update_pull_ratio(self):
-        tensor = torch.empty(0, device=self._device)
+        self.pull_ratio = [torch.tensor(0., device=self._device, requires_grad=True) for i in range(self._sim_properties.num_steps)]
         optimizable = self.optimizable
-        for i in range(len(self._pull_ratio)-1):
-            steps = int((self._time[i+1] - self._time[i]) / self._dt) + 1
-            weight = torch.linspace(0.,1.,steps).to(self._device)
-            linear = torch.lerp(input=self._pull_ratio[i], end=self._pull_ratio[i+1], weight=weight)[:-1]
-            linear[0] = self._pull_ratio[i]
-            linear[-1] = self._pull_ratio[i+1]
-            tensor = torch.cat((tensor, linear))
-        self.pull_ratio = [t for t in tensor]
+        self.pull_ratio[0] = self.optimizable[0]
+        self.pull_ratio[200] = self.optimizable[1]
+        self.pull_ratio[399] = self.optimizable[2]
