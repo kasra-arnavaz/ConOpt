@@ -53,6 +53,6 @@ class TimeVariablePullRatio(PullRatio):
         return self._pull_ratio
 
     def update_pull_ratio(self):
-        t = torch.arange(0, self._sim_properties.duration, self._dt)
-        self.pull_ratio = linear_interpolate(self._time, self._pull_ratio, t, self._device)
+        t = torch.arange(0, self._sim_properties.duration, self._dt, device=self._device)
+        self.pull_ratio = linear_interpolate(self._time, self._pull_ratio, t)
 

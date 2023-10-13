@@ -32,7 +32,7 @@ class SimulationProperties:
         if self.key_timepoints_interval is None:
             return None
         steps = int(self.duration/self.key_timepoints_interval) + 1
-        return torch.linspace(0.0, self.duration, steps=steps, dtype=torch.float64)
+        return torch.linspace(0.0, self.duration, steps=steps, dtype=torch.float64, device=self.device)
 
     @key_timepoints_interval.validator
     def _check_compatibility_of_duration(self, attribute, value):
