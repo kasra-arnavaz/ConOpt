@@ -78,7 +78,7 @@ def main(args):
         for opt in cable.pull_ratio.optimizable:
             variables.add_parameter(opt)
     simulation = Simulation(scene=scene, properties=sim_properties, use_checkpoint=config.use_checkpoint)
-    loss = LocomotionLoss(scene=scene, target_position=torch.tensor(config.target_position, device=config.device))
+    loss = LocomotionLoss(scene=scene, target_position=torch.tensor(config.target_position, device=config.device), variables=variables)
     optimizer = GradientDescent(loss, variables, learning_rate=config.learning_rate)
     log = Log(loss=loss, variables=variables, path=PATH)
     Train(

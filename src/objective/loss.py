@@ -7,6 +7,7 @@ sys.path.append("src")
 from rendering.rendering import InteriorGapRendering, InteriorContactRendering
 from scene.scene import Scene, TouchScene
 from typing import List
+from objective.variables import Variables
 
 
 class Loss(ABC):
@@ -72,11 +73,25 @@ class PointTouchWithObstacleAvoidanceLoss(Loss):
         return loss
     
 class LocomotionLoss(Loss):
-    def __init__(self, scene: Scene, target_position: torch.Tensor):
+    def __init__(self, scene: Scene, target_position: torch.Tensor, variables: Variables):
         self._scene = scene
         self._target_position = target_position
+        self._variables = variables
 
     def get_loss(self):
+        tracking_loss = self.get_tracking_loss()
+        l1_loss = self.get_l1_loss()
+        print(f"track loss: {tracking_loss}")
+        print(f"L1 loss: {l1_loss}")
+        return 10*tracking_loss + 0.01*l1_loss
+
+    def get_tracking_loss(self):
         output_position = self._scene.robot.nodes.position.mean(dim=0)
         return torch.sum((output_position - self._target_position) ** 2)
 
+    def get_l1_loss(self):
+        parameters = self._variables.parameters
+        loss = torch.zeros(1, requires_grad=True, device=parameters[0].device)
+        for p in parameters:
+            loss = loss + torch.abs(p)
+        return loss/len(parameters)

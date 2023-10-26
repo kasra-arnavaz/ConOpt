@@ -73,6 +73,7 @@ def main(args):
     viewer = SceneViewer(scene=scene, path=PATH, speed_factor=1.0)
     simulation = Simulation(scene=scene, properties=sim_properties, use_checkpoint=config.use_checkpoint)
     update_scene(scene=scene, simulation=simulation, viewer=viewer)
+    print(scene.robot.nodes.position.mean(dim=0))
 
 
 if __name__ == "__main__":
