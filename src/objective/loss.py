@@ -53,6 +53,11 @@ class ObstacleAvoidanceLoss(Loss):
     def __init__(self, rendering: InteriorContactRendering, device: str = "cuda"):
         self._rendering = rendering
         self._device = device
+        self.loss = torch.zeros(1, requires_grad=True, device=self._device)
+
+    @property
+    def rendering(self):
+        return self._rendering
        
     def get_loss(self):
         loss = torch.zeros(1, requires_grad=True, device=self._device)
@@ -61,15 +66,20 @@ class ObstacleAvoidanceLoss(Loss):
             loss = loss + image.mean()
         return loss/len(images)
     
+    def stack_loss(self):
+        self.loss = self.loss + self.get_loss()
+
+    
 class PointTouchWithObstacleAvoidanceLoss(Loss):
-    def __init__(self, scene: TouchScene, renderings: List[InteriorContactRendering], device: str = "cuda"):
+    def __init__(self, scene: TouchScene, obstacle_avoidance_losses: List[ObstacleAvoidanceLoss]):
         self._point_touch_loss = PointTouchLoss(scene)
-        self._obstacle_avoidance_losses = [ObstacleAvoidanceLoss(rendering, device) for rendering in renderings]
+        self.obstacle_avoidance_losses = obstacle_avoidance_losses
 
     def get_loss(self):
         loss = self._point_touch_loss.get_loss()
-        for obstacle_avoidance_loss in self._obstacle_avoidance_losses:
-            loss = loss + obstacle_avoidance_loss.get_loss()
+        for obstacle_avoidance_loss in self.obstacle_avoidance_losses:
+            loss = loss + obstacle_avoidance_loss.loss
+            obstacle_avoidance_loss.loss = torch.zeros(1, requires_grad=True, device=loss.device)
         return loss
     
 class LocomotionLoss(Loss):

@@ -44,9 +44,14 @@ def main(args):
         device=DEVICE,
     )
     sim_properties = SimulationProperties(
-        duration=config.sim_duration, segment_duration=config.sim_segment_duration, dt=config.sim_dt, device=DEVICE
+        duration=config.sim_duration, segment_duration=config.sim_segment_duration, dt=config.sim_dt, key_timepoints_interval=config.key_timepoints_interval, device=DEVICE
     )
-    cable_pull_ratio = [TimeInvariablePullRatio(pull_ratio=torch.tensor(pull, device=DEVICE), simulation_properties=sim_properties, device=DEVICE) for pull in config.cable_pull_ratio]
+
+    pull_ratio = []
+    for pull in config.cable_pull_ratio:
+        sub_list = [torch.tensor(p, device=DEVICE) for p in pull]
+        pull_ratio.append(sub_list)
+    cable_pull_ratio = [TimeVariablePullRatio(pull_ratio=pull, simulation_properties=sim_properties, device=DEVICE) for pull in pull_ratio]
 
     cable_stiffness, cable_damping = config.cable_stiffness, config.cable_damping
 

@@ -57,7 +57,7 @@ def main(args):
     sim_properties = SimulationProperties(
         duration=config.sim_duration, segment_duration=config.sim_segment_duration, dt=config.sim_dt, device=DEVICE
     )
-    cable_pull_ratio = [TimeInvariablePullRatio(pull_ratio=torch.tensor(pull, device=DEVICE), simulation_properties=sim_properties, device=DEVICE) for pull in config.cable_pull_ratio]
+    cable_pull_ratio = [TimeInvariablePullRatio(simulation_properties=sim_properties, device=DEVICE) for _ in config.cable_pull_ratio]
     cable_stiffness, cable_damping = config.cable_stiffness, config.cable_damping
 
     # object
@@ -111,6 +111,7 @@ def main(args):
         ExteriorDepthRendering(zbufs=[robot_zbuf_ext, object_zbuf_ext]), path=PATH, prefix="ext"
     )
     visual_gap = Visual(rendering, path=PATH, prefix="gap")
+    visual_contact = Visual(InteriorContactRendering(robot_zbuf=robot_zbuf, other_zbuf=other_zbuf), path=PATH, prefix="contact")
     log = Log(loss=loss, variables=variables, path=PATH)
     Train(
         simulation,
@@ -119,7 +120,7 @@ def main(args):
         optimizer,
         num_iters=config.num_training_iterations,
         log=log,
-        visuals=[visual_ext, visual_gap],
+        visuals=[visual_ext, visual_gap, visual_contact],
     ).run(verbose=True)
 
 

@@ -54,7 +54,12 @@ class SceneFactory(ABC):
         return CableListFactory(self._holes(), self.cable_pull_ratio, self.cable_stiffness, self.cable_damping).create()
     
     def _holes(self):
-        holes_position = CaterpillarHolesInitialPosition(self._scad()).get()
+        
+        if "caterpillar" in str(self.scad_file):
+            holes_initial_position = CaterpillarHolesInitialPosition
+        elif "starfish" in str(self.scad_file):
+            holes_initial_position = StarfishHolesInitialPosition
+        holes_position = holes_initial_position(self._scad()).get()
         holes = HolesListFactory(holes_position, device=self.device).create()
         for hole in holes:
             self.robot_transform.apply(hole)

@@ -1,0 +1,69 @@
+msh_file: data/starfish_grip.msh
+scad_file: data/starfish.scad
+scad_parameters: data/starfish_scad_params_grip.json
+ideal_edge_length: 0.02
+robot_density: 1080.0
+robot_youngs_modulus: 149000
+robot_poissons_ratio: 0.40
+robot_damping_factor: 0.4
+robot_frozen_bounding_box:
+- -0.04
+- 0
+- -0.0291
+- 0.0495
+- 0
+- 0.0471
+robot_translation:
+- 0.0
+- 0.0
+- 0.0
+robot_rotation_vector:
+- 1.0
+- 0.0
+- 0.0
+robot_rotation_degrees: 90.0
+robot_scale:
+- 0.001
+- 0.001
+- 0.001
+cable_pull_ratio:
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0      
+cable_stiffness: 100
+cable_damping: 0.1
+object_file: data/egg.stl
+object_density: 1080.0
+object_translation:
+- 0.0
+- 0.0
+- -4.0
+object_rotation_vector:
+- 1.0
+- 0.0
+- 0.0
+object_rotation_degrees: -90.0
+object_scale:
+- 0.05
+- 0.05
+- 0.05
+contact_distance: 0.0
+contact_ke: 1
+contact_kd: 1
+contact_kf: 1
+ground: false
+sim_duration: 2.0
+sim_segment_duration: 0.1
+sim_dt: 5.0e-05
+key_timepoints_interval: 1.0
+learning_rate: 1.0e-3
+num_training_iterations: 100
+device: cuda
+use_checkpoint: true
+out_path: .dev/starfish_grip
+target_position:
+- 0.2596
+- 0.0175
+- -0.0077

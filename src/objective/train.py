@@ -42,7 +42,7 @@ class Train:
             if self._visuals is not None:
                 for visual in self._visuals:
                     visual.save_images(str(self.i)) if self.i == 0 else None
-            update_scene(scene=self._scene, simulation=self._simulation)
+            update_scene(scene=self._scene, simulation=self._simulation, obstacle_loss=self._loss.obstacle_avoidance_losses)
             if self._visuals is not None:
                 for visual in self._visuals:
                     visual.save_images(str(self.i + 1))

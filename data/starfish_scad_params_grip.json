@@ -1,0 +1,13 @@
+{
+    "parameterSets":{
+              "firstSet":{
+                    "body_radius": "50",
+                    "height": "40",
+                    "finger_length": "400",
+                    "finger_width": "30",
+                    "num_fingers": "5",
+                    "num_teeth_per_finger": "6"
+                        }
+    },
+    "fileFormatVersion": "1"
+}
