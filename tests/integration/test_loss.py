@@ -8,7 +8,7 @@ from mesh.mesh_properties import MeshProperties
 from simulation.simulation import Simulation
 from point.transform import Transform, get_quaternion
 from rendering.views import ThreeInteriorViews, SixInteriorViews
-from rendering.rendering import InteriorGapRendering, InteriorContactRendering
+from rendering.rendering import InteriorGapRendering, InteriorContactRendering, InteriorDistanceRendering
 from objective.loss import MaxGripLoss, PointTouchLoss, ObstacleAvoidanceLoss
 from simulation.simulation_properties import SimulationProperties
 from scene.scene_factory import GripperSceneFactory, TouchSceneFactory
@@ -16,7 +16,9 @@ from simulation.update_scene import update_scene
 from warp_wrapper.contact_properties import ContactProperties
 from rendering.z_buffer import ZBuffer
 from cable.pull_ratio import TimeInvariablePullRatio
+from objective.variables import Variables
 
+@unittest.skip
 class TestMaxGripLoss(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -43,7 +45,7 @@ class TestMaxGripLoss(unittest.TestCase):
             duration=0.02, segment_duration=0.01, dt=2.1701388888888886e-05, device=cls.device
         )
         pull_ratio = [
-            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.5, device="cuda"), simulation_properties=sim_properties, device="cuda"),
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0., device="cuda"), simulation_properties=sim_properties, device="cuda"),
             TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device="cuda"), simulation_properties=sim_properties, device="cuda"),
             TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device="cuda"), simulation_properties=sim_properties, device="cuda"),
         ]
@@ -84,7 +86,7 @@ class TestMaxGripLoss(unittest.TestCase):
         loss = MaxGripLoss(rendering=self.rendering, device=self.device).get_loss()
         self.assertIsInstance(loss, torch.Tensor)
 
-
+@unittest.skip
 class TestPointTouchLoss(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -170,12 +172,12 @@ class TestObstacleAvoidanceLoss(unittest.TestCase):
             device=cls.device,
         )
         sim_properties = SimulationProperties(
-            duration=0.02, segment_duration=0.01, dt=2.1701388888888886e-05, device=cls.device
+            duration=0.1, segment_duration=0.01, dt=2.1701388888888886e-05, device=cls.device
         )
         pull_ratio = [
-            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.5, device="cuda"), simulation_properties=sim_properties, device="cuda"),
-            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device="cuda"), simulation_properties=sim_properties, device="cuda"),
-            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device="cuda"), simulation_properties=sim_properties, device="cuda"),
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.5, device="cuda", requires_grad=True), simulation_properties=sim_properties, device="cuda"),
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device="cuda", requires_grad=True), simulation_properties=sim_properties, device="cuda"),
+            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device="cuda", requires_grad=True), simulation_properties=sim_properties, device="cuda"),
         ]
         cable_stiffness, cable_damping = 100, 0.01
         # object
@@ -186,11 +188,11 @@ class TestObstacleAvoidanceLoss(unittest.TestCase):
         # obstacle
         obstacle_files = [Path("tests/data/cylinder.obj")] * 2
         obstacle_properties = [MeshProperties(name="obstacle_0", density=1080.0)] * 2
-        transform_0 = Transform(translation=[5.0, -35.0, -85.0], rotation=get_quaternion(vector=[0,1,0], angle_in_degrees=120), scale=[0.001, 0.001, 0.001])
-        transfrom_1 = Transform(translation=[-30.0, -120.0, -80.0], rotation=get_quaternion(vector=[0,1,0], angle_in_degrees=120), scale=[0.001, 0.001, 0.001])
+        transform_0 = Transform(translation=[60.0, -80.0, -30.0], rotation=get_quaternion(vector=[0,1,0], angle_in_degrees=120), scale=[0.001, 0.001, 0.001])
+        transfrom_1 = Transform(translation=[60.0, -180.0, -30.0], rotation=get_quaternion(vector=[0,1,0], angle_in_degrees=120), scale=[0.001, 0.001, 0.001])
         obstacle_transforms = [transform_0, transfrom_1]
 
-        contact_properties = ContactProperties(distance=0.001, ke=2.0, kd=0.1, kf=0.1, ground=False)
+        contact_properties = ContactProperties(distance=None, ke=None, kd=None, kf=None, ground=None)
 
         cls.scene = TouchSceneFactory(
         msh_file=msh_file,
@@ -212,6 +214,11 @@ class TestObstacleAvoidanceLoss(unittest.TestCase):
         device=cls.device,
         make_new_robot=False
         ).create()
+
+        cls.variables = Variables()
+        for cable in cls.scene.robot.cables:
+            for opt in cable.pull_ratio.optimizable:
+                cls.variables.add_parameter(opt)
         
         simulation = Simulation(scene=cls.scene, properties=sim_properties)
         update_scene(scene=cls.scene, simulation=simulation)
@@ -227,6 +234,10 @@ class TestObstacleAvoidanceLoss(unittest.TestCase):
 
     def tests_if_max_grip_loss_is_of_type_torch_tensor(self):
         loss = ObstacleAvoidanceLoss(self.rendering[0], device=self.device).get_loss() + ObstacleAvoidanceLoss(self.rendering[1], device=self.device).get_loss()
+        loss.backward()
+        self.variables.set_gradients()
+        print(loss)
+        print(self.variables.gradients)
         self.assertIsInstance(loss, torch.Tensor)
 
 

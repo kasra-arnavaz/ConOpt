@@ -13,6 +13,7 @@ from rendering.rendering import (
     ExteriorDepthRendering,
     InteriorGapRendering,
     InteriorContactRendering,
+    InteriorDistanceRendering
 )
 from objective.loss import PointTouchLoss, ObstacleAvoidanceLoss, PointTouchWithObstacleAvoidanceLoss
 from objective.optimizer import GradientDescent, Adam
@@ -60,6 +61,13 @@ def main(args):
     sim_properties = SimulationProperties(
         duration=config.sim_duration, segment_duration=config.sim_segment_duration, dt=config.sim_dt, key_timepoints_interval=config.key_timepoints_interval, device=DEVICE
     )
+
+    # pull_ratio = []
+    # for pull in config.cable_pull_ratio:
+    #     sub_list = [torch.tensor(p, device=DEVICE, requires_grad=True) for p in pull]
+    #     pull_ratio.append(sub_list)
+    # cable_pull_ratio = [TimeVariablePullRatio(pull_ratio=pull, simulation_properties=sim_properties, device=DEVICE) for pull in pull_ratio]
+
     cable_pull_ratio = [TimeVariablePullRatio(simulation_properties=sim_properties, device=DEVICE) for _ in config.cable_pull_ratio]
     cable_stiffness, cable_damping = config.cable_stiffness, config.cable_damping
 
@@ -126,7 +134,7 @@ def main(args):
     obstacle_zbuf_0 = ZBuffer(mesh=scene.obstacles[0], views=views_obstacle_0, device=DEVICE)
     obstacle_zbuf_1 = ZBuffer(mesh=scene.obstacles[1], views=views_obstacle_1, device=DEVICE)
     obstacle_zbufs = [obstacle_zbuf_0, obstacle_zbuf_1]
-    renderings = [InteriorContactRendering(robot_zbuf=rz, other_zbuf=oz) for rz, oz in zip(robot_zbufs, obstacle_zbufs)]
+    renderings = [InteriorGapRendering(robot_zbuf=rz, other_zbuf=oz) for rz, oz in zip(robot_zbufs, obstacle_zbufs)]
     obs_loss = [ObstacleAvoidanceLoss(rendering=r, device=DEVICE) for r in renderings]
     loss = PointTouchWithObstacleAvoidanceLoss(scene=scene, obstacle_avoidance_losses=obs_loss)
 

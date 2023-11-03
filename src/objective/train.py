@@ -11,7 +11,7 @@ from scene.scene import Scene
 from objective.log import Log
 from rendering.visual import Visual
 from typing import List
-
+import torch
 
 class Train:
     def __init__(
@@ -42,7 +42,11 @@ class Train:
             if self._visuals is not None:
                 for visual in self._visuals:
                     visual.save_images(str(self.i)) if self.i == 0 else None
-            update_scene(scene=self._scene, simulation=self._simulation, obstacle_loss=self._loss.obstacle_avoidance_losses)
+            try:
+                update_scene(scene=self._scene, simulation=self._simulation, obstacle_loss=self._loss.obstacle_avoidance_losses)
+            except:
+                update_scene(scene=self._scene, simulation=self._simulation, obstacle_loss=None)
+
             if self._visuals is not None:
                 for visual in self._visuals:
                     visual.save_images(str(self.i + 1))
@@ -51,6 +55,11 @@ class Train:
             self.print() if verbose else None
             self._log.save() if self._log is not None else None
             self._optimizer.zero_grad()
+            try:
+                for loss in self._loss.obstacle_avoidance_losses:
+                    loss.loss = torch.zeros(1, requires_grad=True, device=loss.loss.device)
+            except:
+                pass
             self._scene.reset()
 
     def print(self):

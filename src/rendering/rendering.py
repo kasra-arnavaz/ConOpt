@@ -6,6 +6,8 @@ sys.path.append("src")
 from rendering.z_buffer import ZBuffer
 from abc import ABC, abstractmethod
 
+import matplotlib.pyplot as plt
+
 class DepthRendering(ABC):
 
     @abstractmethod
@@ -53,7 +55,7 @@ class InteriorGapRendering(InteriorDepthRendering):
         other_zbuf = self.other_zubf
         for rz, oz in zip(robot_zbuf, other_zbuf): #looping over views
             distance = rz - oz
-            distance[distance < 0] = 0
+            distance[distance < 0] = 0 # consider not zeroing negative distances
             gaps.append(distance)
         return gaps
 
@@ -65,9 +67,21 @@ class InteriorContactRendering(InteriorDepthRendering):
         other_zbuf = self.other_zubf
         for rz, oz in zip(robot_zbuf, other_zbuf): # looping over views
             distance = oz - rz
-            mask_contact = distance >= 0
-            mask_other = oz > -1.0
-            mask_robot = rz > -1.0
+            mask_contact = distance>=0
+            mask_other = oz>-1
+            mask_robot = rz>-1
             mask = mask_contact * mask_robot * mask_other * 1.0
             contacts.append(mask)
         return contacts
+    
+class InteriorDistanceRendering(InteriorDepthRendering):
+    def get_images(self):
+        gaps = []
+        
+        robot_zbuf = self.robot_zbuf
+        other_zbuf = self.other_zubf
+        for rz, oz in zip(robot_zbuf, other_zbuf): #looping over views
+            distance = rz - oz
+            distance[distance > 0] = 0
+            gaps.append(distance)
+        return gaps

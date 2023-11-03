@@ -1,6 +1,6 @@
 msh_file: data/short_caterpillar.msh
 scad_file: data/caterpillar.scad
-scad_parameters: data/short_caterpillar_unequal_scad_params.json
+scad_parameters: data/caterpillar_scad_params.json
 ideal_edge_length: 0.02
 robot_density: 1080.0
 robot_youngs_modulus: 149000
@@ -42,16 +42,6 @@ cable_pull_ratio:
   - 0.0
   - 0.0
   - 0.0
-- - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-- - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
 cable_stiffness: 50
 cable_damping: 0.01
 object_file: data/sphere.obj
@@ -69,7 +59,7 @@ object_scale:
 - 0.005
 - 0.005
 - 0.005
-sim_duration: 2.0
+sim_duration: 5.0
 sim_segment_duration: 0.1
 sim_dt: 5.0e-05
 key_timepoints_interval: 0.5
@@ -78,7 +68,7 @@ contact_ke: null
 contact_kd: null
 contact_kf: null
 ground: null
-learning_rate: 1
+learning_rate: 1.0
 num_training_iterations: 100
 device: cuda
 use_checkpoint: true

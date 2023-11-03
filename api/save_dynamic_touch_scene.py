@@ -99,7 +99,7 @@ def main(args):
     ).create()
 
 
-    simulation = Simulation(scene=scene, properties=sim_properties)
+    simulation = Simulation(scene=scene, properties=sim_properties, use_checkpoint=config.use_checkpoint)
     viewer = SceneViewer(scene=scene, path=PATH)
     update_scene(scene=scene, simulation=simulation, viewer=viewer)
     print(scene.robot.nodes.position[scene.robot_end_effector_idx])

@@ -49,10 +49,10 @@ object_scale:
 - 0.0015
 - 0.0015
 - 0.01
-sim_duration: 3.0
+sim_duration: 5.0
 sim_segment_duration: 0.1
 sim_dt: 5.0e-05
-contact_distance: 0.001
+contact_distance: 0.005
 contact_ke: 2.0
 contact_kd: 0.1
 contact_kf: 0.1

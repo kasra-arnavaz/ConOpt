@@ -27,11 +27,11 @@ robot_scale:
 - 0.001
 - 0.001
 cable_pull_ratio:
-- 0.0
-- 0.0
-- 0.0
-- 0.0
-- 0.0      
+- 0.3950
+- 0.5243
+- 0.4769
+- 0.4546
+- 0.4703
 cable_stiffness: 100
 cable_damping: 0.1
 object_file: data/egg.stl
