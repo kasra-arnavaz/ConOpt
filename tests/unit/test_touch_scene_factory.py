@@ -2,6 +2,7 @@ import unittest
 from pathlib import Path
 import sys
 import torch
+
 sys.path.append("src")
 from mesh.mesh_properties import MeshProperties
 from point.transform import Transform, get_quaternion
@@ -10,8 +11,8 @@ from scene.scene_factory import TouchSceneFactory
 from mesh.mesh import Mesh
 from warp.sim import Model
 
+
 class TestGripperSceneFactory(unittest.TestCase):
-    
     @classmethod
     def setUpClass(cls):
         device = "cuda"
@@ -45,12 +46,22 @@ class TestGripperSceneFactory(unittest.TestCase):
         # obstacles
         obstacle_files = [Path("tests/data/cylinder.obj")] * 2
         obstacle_properties = [MeshProperties(name="cylinder", density=1080.0)] * 2
-        obstacle_1_transform = Transform(translation=[-60, -60, -20], rotation=get_quaternion(vector=[0,0,1], angle_in_degrees=90), scale=[0.0015, 0.0015, 0.01], device=device)
-        obstacle_2_transform = Transform(translation=[60, -60, -20], rotation=get_quaternion(vector=[0,0,1], angle_in_degrees=90), scale=[0.0015, 0.0015, 0.01], device=device)
+        obstacle_1_transform = Transform(
+            translation=[-60, -60, -20],
+            rotation=get_quaternion(vector=[0, 0, 1], angle_in_degrees=90),
+            scale=[0.0015, 0.0015, 0.01],
+            device=device,
+        )
+        obstacle_2_transform = Transform(
+            translation=[60, -60, -20],
+            rotation=get_quaternion(vector=[0, 0, 1], angle_in_degrees=90),
+            scale=[0.0015, 0.0015, 0.01],
+            device=device,
+        )
         obstacle_tranforms = [obstacle_1_transform, obstacle_2_transform]
 
         contact_properties = ContactProperties(distance=0.001, ke=2.0, kd=0.1, kf=0.1, ground=False)
-        
+
         cls.scene = TouchSceneFactory(
             scad_file=scad_file,
             scad_parameters=scad_parameters,
@@ -69,9 +80,9 @@ class TestGripperSceneFactory(unittest.TestCase):
             contact_properties=contact_properties,
             device=device,
             msh_file=msh_file,
-            make_new_robot=False
+            make_new_robot=False,
         ).create()
-    
+
     def tests_type_of_robot_attribute(self):
         self.assertIsInstance(self.scene.robot, Mesh)
 
@@ -80,12 +91,11 @@ class TestGripperSceneFactory(unittest.TestCase):
 
     def tests_type_of_model_attribute(self):
         self.assertIsInstance(self.scene.model, Model)
-    
+
     def tests_type_of_obstacles_attribute(self):
         self.assertIsInstance(self.scene.obstacles, list)
         for obstacle in self.scene.obstacles:
             self.assertIsInstance(obstacle, Mesh)
-
 
 
 if __name__ == "__main__":

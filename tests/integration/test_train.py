@@ -10,28 +10,23 @@ from mesh.mesh_properties import MeshProperties
 from simulation.simulation import Simulation
 from point.transform import Transform, get_quaternion
 from rendering.views import ThreeInteriorViews, ThreeExteriorViews
-from rendering.visual import Visual
-from rendering.rendering import (
-    ExteriorDepthRendering,
-    InteriorGapRendering,
-    InteriorContactRendering,
-)
+from rendering.rendering import InteriorGapRendering
 from objective.loss import MaxGripLoss
-from objective.optimizer import GradientDescent, Adam
+from objective.optimizer import GradientDescent
 from objective.train import Train
 from objective.variables import Variables
 from simulation.simulation_properties import SimulationProperties
 from objective.log import Log
 from rendering.z_buffer import ZBuffer
 from cable.pull_ratio import TimeInvariablePullRatio, TimeVariablePullRatio
+from simulation.update_scene import UpdateScene
+
 
 class TestTainWithTimeInvariablePullRatio(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         device = "cuda"
-        sim_properties = SimulationProperties(
-            duration=0.02, segment_duration=0.01, dt=5.e-05, device=device
-        )
+        sim_properties = SimulationProperties(duration=0.02, segment_duration=0.01, dt=5.0e-05, device=device)
         # robot
         msh_file = Path("data/long_caterpillar.msh")
         scad_file = Path("tests/data/caterpillar.scad")
@@ -62,7 +57,7 @@ class TestTainWithTimeInvariablePullRatio(unittest.TestCase):
 
         contact_properties = ContactProperties(distance=0.001, ke=2.0, kd=0.1, kf=0.1, ground=False)
 
-        cls.scene = GripperSceneFactory(
+        scene = GripperSceneFactory(
             msh_file=msh_file,
             scad_file=scad_file,
             scad_parameters=scad_parameters,
@@ -77,37 +72,32 @@ class TestTainWithTimeInvariablePullRatio(unittest.TestCase):
             object_transform=object_transform,
             contact_properties=contact_properties,
             device=device,
-            make_new_robot=False
+            make_new_robot=False,
         ).create()
 
         variables = Variables()
-        for cable in cls.scene.robot.cables:
+        for cable in scene.robot.cables:
             for opt in cable.pull_ratio.optimizable:
                 variables.add_parameter(opt)
-        
-        simulation = Simulation(scene=cls.scene, properties=sim_properties, use_checkpoint=True)
-        views = ThreeInteriorViews(center=cls.scene.object.nodes.position.mean(dim=0), device=device)
-        robot_zbuf = ZBuffer(mesh=cls.scene.robot, views=views, device=device)
-        other_zbuf = ZBuffer(mesh=cls.scene.object, views=views, device=device)
+
+        simulation = Simulation(scene=scene, properties=sim_properties, use_checkpoint=True)
+        views = ThreeInteriorViews(center=scene.object.nodes.position.mean(dim=0), device=device)
+        robot_zbuf = ZBuffer(mesh=scene.robot, views=views, device=device)
+        other_zbuf = ZBuffer(mesh=scene.object, views=views, device=device)
         rendering = InteriorGapRendering(robot_zbuf=robot_zbuf, other_zbuf=other_zbuf)
         loss = MaxGripLoss(rendering=rendering, device=device)
         optimizer = GradientDescent(loss, variables, learning_rate=0.1)
-        exterior_view = ThreeExteriorViews(distance=0.5, device=device)
-        robot_zbuf_ext = ZBuffer(mesh=cls.scene.robot, views=exterior_view, device=device)
-        object_zbuf_ext = ZBuffer(mesh=cls.scene.object, views=exterior_view, device=device)
         PATH = ".tmp"
-        visual = Visual(
-            ExteriorDepthRendering(zbufs=[robot_zbuf_ext, object_zbuf_ext]), path=PATH, prefix="ext"
-        )
         log = Log(loss=loss, variables=variables, path=PATH)
-        cls.train = Train(simulation, cls.scene, loss, optimizer, num_iters=2, log=log, visuals=[visual])
-
+        update_scene = UpdateScene(scene=scene, simulation=simulation)
+        cls.train = Train(scene, update_scene, loss, optimizer, num_iters=2, log=log)
 
     def tests_if_train_runs_with_time_invariable_pull_ratio(self):
         try:
             self.train.run(verbose=True)
         except:
             self.fail()
+
 
 class TestTainWithTimeVariablePullRatio(unittest.TestCase):
     @classmethod
@@ -145,7 +135,7 @@ class TestTainWithTimeVariablePullRatio(unittest.TestCase):
 
         contact_properties = ContactProperties(distance=0.001, ke=2.0, kd=0.1, kf=0.1, ground=False)
 
-        cls.scene = GripperSceneFactory(
+        scene = GripperSceneFactory(
             msh_file=msh_file,
             scad_file=scad_file,
             scad_parameters=scad_parameters,
@@ -160,31 +150,25 @@ class TestTainWithTimeVariablePullRatio(unittest.TestCase):
             object_transform=object_transform,
             contact_properties=contact_properties,
             device=device,
-            make_new_robot=False
+            make_new_robot=False,
         ).create()
 
         variables = Variables()
-        for cable in cls.scene.robot.cables:
+        for cable in scene.robot.cables:
             for opt in cable.pull_ratio.optimizable:
                 variables.add_parameter(opt)
-        
-        simulation = Simulation(scene=cls.scene, properties=cls.sim_properties, use_checkpoint=True)
-        views = ThreeInteriorViews(center=cls.scene.object.nodes.position.mean(dim=0), device=device)
-        robot_zbuf = ZBuffer(mesh=cls.scene.robot, views=views, device=device)
-        other_zbuf = ZBuffer(mesh=cls.scene.object, views=views, device=device)
+
+        simulation = Simulation(scene=scene, properties=cls.sim_properties, use_checkpoint=True)
+        views = ThreeInteriorViews(center=scene.object.nodes.position.mean(dim=0), device=device)
+        robot_zbuf = ZBuffer(mesh=scene.robot, views=views, device=device)
+        other_zbuf = ZBuffer(mesh=scene.object, views=views, device=device)
         rendering = InteriorGapRendering(robot_zbuf=robot_zbuf, other_zbuf=other_zbuf)
         loss = MaxGripLoss(rendering=rendering, device=device)
         optimizer = GradientDescent(loss, variables, learning_rate=0.1)
-        exterior_view = ThreeExteriorViews(distance=0.5, device=device)
-        robot_zbuf_ext = ZBuffer(mesh=cls.scene.robot, views=exterior_view, device=device)
-        object_zbuf_ext = ZBuffer(mesh=cls.scene.object, views=exterior_view, device=device)
         PATH = ".tmp"
-        visual = Visual(
-            ExteriorDepthRendering(zbufs=[robot_zbuf_ext, object_zbuf_ext]), path=PATH, prefix="ext"
-        )
         log = Log(loss=loss, variables=variables, path=PATH)
-        cls.train = Train(simulation, cls.scene, loss, optimizer, num_iters=2, log=log, visuals=[visual])
-
+        update_scene = UpdateScene(scene=scene, simulation=simulation)
+        cls.train = Train(scene, update_scene, loss, optimizer, num_iters=2, log=log)
 
     def tests_if_train_runs_with_time_variable_pull_ratio(self):
         try:

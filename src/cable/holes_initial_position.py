@@ -17,19 +17,19 @@ class HolesInitialPosition(ABC):
     @abstractmethod
     def get(self) -> List[torch.Tensor]:
         pass
-        
+
     def _create_echo_file(self):
         os.system(f"openscad {self._scad.file} -o {self._get_echo_file()} -p {self._scad.parameters} -P firstSet")
 
     def _get_echo_file(self):
         return self._PATH / "hole.echo"
-    
-class StarfishHolesInitialPosition(HolesInitialPosition):
 
+
+class StarfishHolesInitialPosition(HolesInitialPosition):
     def get(self):
         self._create_echo_file()
         return self.get_holes()
-    
+
     def get_holes(self):
         all_holes = self.get_all_holes()
         num_holes = self.get_number_of_holes()
@@ -42,15 +42,14 @@ class StarfishHolesInitialPosition(HolesInitialPosition):
             line[0] = line[0].replace("ECHO: [", "")
             line[2] = line[2].replace("]", "")
         return torch.from_numpy(np.array(file, dtype=np.float32))
-    
+
     def get_number_of_holes(self):
         with open(self._scad.parameters, "r") as f:
             num_holes_per_cable = int(json.load(f)["parameterSets"]["firstSet"]["num_teeth_per_finger"]) * 2 + 1
         return num_holes_per_cable
-        
+
 
 class CaterpillarHolesInitialPosition(HolesInitialPosition):
-    
     def get(self) -> List[torch.Tensor]:
         self._create_echo_file()
         return self._sort_holes_position_ascending_by_height()

@@ -8,8 +8,8 @@ from abc import ABC, abstractmethod
 
 import matplotlib.pyplot as plt
 
-class DepthRendering(ABC):
 
+class DepthRendering(ABC):
     @abstractmethod
     def get_images(self):
         pass
@@ -22,7 +22,7 @@ class ExteriorDepthRendering(DepthRendering):
     @property
     def zbufs(self):
         return torch.stack([zbuf.zbuf for zbuf in self._zbufs])
-    
+
     def get_images(self):
         zbufs = self.zbufs
         LARGE_POSITIVE_NUMBER = 619.0
@@ -31,7 +31,6 @@ class ExteriorDepthRendering(DepthRendering):
         images[images == LARGE_POSITIVE_NUMBER] = -1.0
         images = [image for image in images]
         return images
-    
 
 
 class InteriorDepthRendering(DepthRendering):
@@ -42,7 +41,7 @@ class InteriorDepthRendering(DepthRendering):
     @property
     def robot_zbuf(self):
         return self._robot_zbuf.zbuf
-    
+
     @property
     def other_zubf(self):
         return self._other_zbuf.zbuf
@@ -53,9 +52,9 @@ class InteriorGapRendering(InteriorDepthRendering):
         gaps = []
         robot_zbuf = self.robot_zbuf
         other_zbuf = self.other_zubf
-        for rz, oz in zip(robot_zbuf, other_zbuf): #looping over views
+        for rz, oz in zip(robot_zbuf, other_zbuf):  # looping over views
             distance = rz - oz
-            distance[distance < 0] = 0 # consider not zeroing negative distances
+            distance[distance < 0] = 0  # consider not zeroing negative distances
             gaps.append(distance)
         return gaps
 
@@ -65,22 +64,23 @@ class InteriorContactRendering(InteriorDepthRendering):
         contacts = []
         robot_zbuf = self.robot_zbuf
         other_zbuf = self.other_zubf
-        for rz, oz in zip(robot_zbuf, other_zbuf): # looping over views
+        for rz, oz in zip(robot_zbuf, other_zbuf):  # looping over views
             distance = oz - rz
-            mask_contact = distance>=0
-            mask_other = oz>-1
-            mask_robot = rz>-1
+            mask_contact = distance >= 0
+            mask_other = oz > -1
+            mask_robot = rz > -1
             mask = mask_contact * mask_robot * mask_other * 1.0
             contacts.append(mask)
         return contacts
-    
+
+
 class InteriorDistanceRendering(InteriorDepthRendering):
     def get_images(self):
         gaps = []
-        
+
         robot_zbuf = self.robot_zbuf
         other_zbuf = self.other_zubf
-        for rz, oz in zip(robot_zbuf, other_zbuf): #looping over views
+        for rz, oz in zip(robot_zbuf, other_zbuf):  # looping over views
             distance = rz - oz
             distance[distance > 0] = 0
             gaps.append(distance)

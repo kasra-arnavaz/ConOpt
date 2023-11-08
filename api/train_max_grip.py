@@ -1,4 +1,3 @@
-import torch
 import sys
 
 sys.path.append("src")
@@ -7,15 +6,10 @@ from scene.scene_factory import GripperSceneFactory
 from mesh.mesh_properties import MeshProperties
 from simulation.simulation import Simulation
 from point.transform import Transform, get_quaternion
-from rendering.views import ThreeInteriorViews, ThreeExteriorViews, SixInteriorViews
-from rendering.visual import Visual
-from rendering.rendering import (
-    ExteriorDepthRendering,
-    InteriorGapRendering,
-    InteriorContactRendering,
-)
+from rendering.views import SixInteriorViews
+from rendering.rendering import InteriorGapRendering
 from objective.loss import MaxGripLoss
-from objective.optimizer import GradientDescent, Adam
+from objective.optimizer import GradientDescent
 from objective.train import Train
 from objective.variables import Variables
 from simulation.simulation_properties import SimulationProperties
@@ -25,7 +19,9 @@ from config.config import Config
 import argparse
 from utils.path import get_next_numbered_path
 from rendering.z_buffer import ZBuffer
-from cable.pull_ratio import TimeVariablePullRatio, TimeInvariablePullRatio
+from cable.pull_ratio import TimeInvariablePullRatio
+from simulation.update_scene import UpdateScene
+
 
 def main(args):
     config = Config.from_yaml(args.config)
@@ -49,15 +45,21 @@ def main(args):
     robot_transform = Transform(
         translation=config.robot_translation,
         rotation=get_quaternion(
-            vector=config.robot_rotation_vector, angle_in_degrees=config.robot_rotation_degrees
+            vector=config.robot_rotation_vector,
+            angle_in_degrees=config.robot_rotation_degrees,
         ),
         scale=config.robot_scale,
         device=DEVICE,
     )
     sim_properties = SimulationProperties(
-        duration=config.sim_duration, segment_duration=config.sim_segment_duration, dt=config.sim_dt, device=DEVICE
+        duration=config.sim_duration,
+        segment_duration=config.sim_segment_duration,
+        dt=config.sim_dt,
+        device=DEVICE,
     )
-    cable_pull_ratio = [TimeInvariablePullRatio(simulation_properties=sim_properties, device=DEVICE) for _ in config.cable_pull_ratio]
+    cable_pull_ratio = [
+        TimeInvariablePullRatio(simulation_properties=sim_properties, device=DEVICE) for _ in config.cable_pull_ratio
+    ]
     cable_stiffness, cable_damping = config.cable_stiffness, config.cable_damping
 
     # object
@@ -65,13 +67,20 @@ def main(args):
     object_properties = MeshProperties(name="object", density=config.object_density)
     object_transform = Transform(
         translation=config.object_translation,
-        rotation=get_quaternion(vector=config.object_rotation_vector, angle_in_degrees=config.object_rotation_degrees),
+        rotation=get_quaternion(
+            vector=config.object_rotation_vector,
+            angle_in_degrees=config.object_rotation_degrees,
+        ),
         scale=config.object_scale,
         device=DEVICE,
     )
 
     contact_properties = ContactProperties(
-        distance=config.contact_distance, ke=config.contact_ke, kd=config.contact_kd, kf=config.contact_kf, ground=config.ground
+        distance=config.contact_distance,
+        ke=config.contact_ke,
+        kd=config.contact_kd,
+        kf=config.contact_kf,
+        ground=config.ground,
     )
 
     scene = GripperSceneFactory(
@@ -89,7 +98,7 @@ def main(args):
         object_transform=object_transform,
         contact_properties=contact_properties,
         device=DEVICE,
-        make_new_robot=False
+        make_new_robot=False,
     ).create()
 
     variables = Variables()
@@ -104,23 +113,15 @@ def main(args):
     rendering = InteriorGapRendering(robot_zbuf=robot_zbuf, other_zbuf=other_zbuf)
     loss = MaxGripLoss(rendering=rendering, device=DEVICE)
     optimizer = GradientDescent(loss, variables, learning_rate=config.learning_rate)
-    exterior_view = ThreeExteriorViews(distance=0.5, device=DEVICE)
-    robot_zbuf_ext = ZBuffer(mesh=scene.robot, views=exterior_view, device=DEVICE)
-    object_zbuf_ext = ZBuffer(mesh=scene.object, views=exterior_view, device=DEVICE)
-    visual_ext = Visual(
-        ExteriorDepthRendering(zbufs=[robot_zbuf_ext, object_zbuf_ext]), path=PATH, prefix="ext"
-    )
-    visual_gap = Visual(rendering, path=PATH, prefix="gap")
-    visual_contact = Visual(InteriorContactRendering(robot_zbuf=robot_zbuf, other_zbuf=other_zbuf), path=PATH, prefix="contact")
     log = Log(loss=loss, variables=variables, path=PATH)
+    update_scene = UpdateScene(scene=scene, simulation=simulation)
     Train(
-        simulation,
         scene,
+        update_scene,
         loss,
         optimizer,
         num_iters=config.num_training_iterations,
         log=log,
-        visuals=[visual_ext, visual_gap, visual_contact],
     ).run(verbose=True)
 
 

@@ -15,6 +15,7 @@ from cable.cable_factory import CableListFactory
 from cable.pull_ratio import TimeInvariablePullRatio
 from simulation.simulation_properties import SimulationProperties
 
+
 class TestHolesForce(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -25,9 +26,15 @@ class TestHolesForce(unittest.TestCase):
         holes = HolesListFactory(holes_position, device="cuda").create()
         sim_properties = SimulationProperties(dt=0.1, duration=1.0, segment_duration=0.1)
         pull_ratio = [
-            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.5, device="cuda"), simulation_properties=sim_properties, device="cuda"),
-            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.5, device="cuda"), simulation_properties=sim_properties, device="cuda"),
-            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.5, device="cuda"), simulation_properties=sim_properties, device="cuda"),
+            TimeInvariablePullRatio(
+                pull_ratio=torch.tensor(0.5, device="cuda"), simulation_properties=sim_properties, device="cuda"
+            ),
+            TimeInvariablePullRatio(
+                pull_ratio=torch.tensor(0.5, device="cuda"), simulation_properties=sim_properties, device="cuda"
+            ),
+            TimeInvariablePullRatio(
+                pull_ratio=torch.tensor(0.5, device="cuda"), simulation_properties=sim_properties, device="cuda"
+            ),
         ]
         cls.cables = CableListFactory(stiffness=100, damping=0.01, pull_ratio=pull_ratio, holes=holes).create()
 

@@ -7,6 +7,7 @@ from functools import cached_property
 from mesh.mesh import Mesh
 import torch
 
+
 class ZBuffer:
     def __init__(self, mesh: Mesh, views: Views, device: str = "cuda"):
         self._mesh = mesh

@@ -2,6 +2,7 @@ import unittest
 from pathlib import Path
 import sys
 import torch
+
 sys.path.append("src")
 from mesh.mesh_properties import MeshProperties
 from point.transform import Transform, get_quaternion
@@ -10,8 +11,8 @@ from scene.scene_factory import GripperSceneFactory
 from mesh.mesh import Mesh
 from warp.sim import Model
 
+
 class TestGripperSceneFactory(unittest.TestCase):
-    
     @classmethod
     def setUpClass(cls):
         device = "cuda"
@@ -43,7 +44,7 @@ class TestGripperSceneFactory(unittest.TestCase):
         object_transform = Transform(translation=[60, -60, -20], scale=[0.0015, 0.0015, 0.01], device=device)
 
         contact_properties = ContactProperties(distance=0.001, ke=2.0, kd=0.1, kf=0.1, ground=False)
-        
+
         cls.scene = GripperSceneFactory(
             scad_file=scad_file,
             scad_parameters=scad_parameters,
@@ -59,9 +60,9 @@ class TestGripperSceneFactory(unittest.TestCase):
             contact_properties=contact_properties,
             device=device,
             msh_file=msh_file,
-            make_new_robot=False
+            make_new_robot=False,
         ).create()
-    
+
     def tests_type_of_robot_attribute(self):
         self.assertIsInstance(self.scene.robot, Mesh)
 

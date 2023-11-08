@@ -10,9 +10,10 @@ from warp_wrapper.contact_properties import ContactProperties
 from point.transform import Transform, get_quaternion
 from mesh.mesh_properties import MeshProperties
 from simulation.simulation_properties import SimulationProperties
-from simulation.update_scene import update_scene
-from scene.scene_viewer import SceneViewer
+from simulation.update_scene import UpdateScene
+from scene.scene_observer import SceneViewer
 from cable.pull_ratio import TimeInvariablePullRatio
+
 
 class TestSceneViewer(unittest.TestCase):
     """Only checks memory and gradients but final mesh needs to be viewed manually
@@ -41,9 +42,15 @@ class TestSceneViewer(unittest.TestCase):
             duration=0.5, segment_duration=0.05, dt=2.1701388888888886e-05, device=device
         )
         pull_ratio = [
-            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.5, device=device), simulation_properties=sim_properties, device=device),
-            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device=device), simulation_properties=sim_properties, device=device),
-            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device=device), simulation_properties=sim_properties, device=device),
+            TimeInvariablePullRatio(
+                pull_ratio=torch.tensor(0.5, device=device), simulation_properties=sim_properties, device=device
+            ),
+            TimeInvariablePullRatio(
+                pull_ratio=torch.tensor(0.0, device=device), simulation_properties=sim_properties, device=device
+            ),
+            TimeInvariablePullRatio(
+                pull_ratio=torch.tensor(0.0, device=device), simulation_properties=sim_properties, device=device
+            ),
         ]
         cable_stiffness, cable_damping = 100, 0.01
         # object
@@ -68,16 +75,16 @@ class TestSceneViewer(unittest.TestCase):
             object_transform=object_transform,
             contact_properties=contact_properties,
             device=device,
-            make_new_robot=False
+            make_new_robot=False,
         ).create()
 
-
         cls.simulation = Simulation(scene=cls.scene, properties=sim_properties)
-        cls.viewer = SceneViewer(scene=cls.scene, path=".tmp")
+        viewer = SceneViewer(scene=cls.scene, simulation_properties=sim_properties, path=".tmp")
+        cls.scene.add_observer(viewer)
 
     def tests_if_simulation_runs_with_viewer(self):
         try:
-            update_scene(scene=self.scene, simulation=self.simulation, viewer=self.viewer)
+            UpdateScene(scene=self.scene, simulation=self.simulation).update_scene()
             print("CHECK .tmp/scene.usd")
         except:
             self.fail()

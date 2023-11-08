@@ -19,6 +19,7 @@ from warp_wrapper.contact_properties import ContactProperties
 from cable.pull_ratio import TimeInvariablePullRatio
 from simulation.simulation_properties import SimulationProperties
 
+
 class TestNodesPositionAndVelocity(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -33,9 +34,15 @@ class TestNodesPositionAndVelocity(unittest.TestCase):
         holes_velocities = [holes.velocity for holes in holes]
         sim_properties = SimulationProperties(dt=0.1, duration=1.0, segment_duration=0.1)
         pull_ratio = [
-            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.5, device="cuda"), simulation_properties=sim_properties, device="cuda"),
-            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device="cuda"), simulation_properties=sim_properties, device="cuda"),
-            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device="cuda"), simulation_properties=sim_properties, device="cuda"),
+            TimeInvariablePullRatio(
+                pull_ratio=torch.tensor(0.5, device="cuda"), simulation_properties=sim_properties, device="cuda"
+            ),
+            TimeInvariablePullRatio(
+                pull_ratio=torch.tensor(0.0, device="cuda"), simulation_properties=sim_properties, device="cuda"
+            ),
+            TimeInvariablePullRatio(
+                pull_ratio=torch.tensor(0.0, device="cuda"), simulation_properties=sim_properties, device="cuda"
+            ),
         ]
         cables = CableListFactory(stiffness=100, damping=0.01, pull_ratio=pull_ratio, holes=holes).create()
 
@@ -79,9 +86,15 @@ class TestNodesForce(unittest.TestCase):
         holes_velocities = [holes.velocity for holes in cls.holes]
         sim_properties = SimulationProperties(dt=0.1, duration=1.0, segment_duration=0.1)
         pull_ratio = [
-            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.5, device="cuda"), simulation_properties=sim_properties, device="cuda"),
-            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device="cuda"), simulation_properties=sim_properties, device="cuda"),
-            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device="cuda"), simulation_properties=sim_properties, device="cuda"),
+            TimeInvariablePullRatio(
+                pull_ratio=torch.tensor(0.5, device="cuda"), simulation_properties=sim_properties, device="cuda"
+            ),
+            TimeInvariablePullRatio(
+                pull_ratio=torch.tensor(0.0, device="cuda"), simulation_properties=sim_properties, device="cuda"
+            ),
+            TimeInvariablePullRatio(
+                pull_ratio=torch.tensor(0.0, device="cuda"), simulation_properties=sim_properties, device="cuda"
+            ),
         ]
         cables = CableListFactory(stiffness=100, damping=0.01, pull_ratio=pull_ratio, holes=cls.holes).create()
         fn = HolesForce(cables=cables, device="cuda")

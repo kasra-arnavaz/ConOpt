@@ -27,6 +27,7 @@ class TestCaterpillarHolesInitialPosition(unittest.TestCase):
         for hole in self.holes_position:
             self.assertIsInstance(hole, torch.Tensor)
 
+
 class TestStarfishHolesInitialPosition(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

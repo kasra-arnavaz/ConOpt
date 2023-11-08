@@ -10,8 +10,9 @@ from warp_wrapper.contact_properties import ContactProperties
 from point.transform import Transform, get_quaternion
 from mesh.mesh_properties import MeshProperties
 from simulation.simulation_properties import SimulationProperties
-from simulation.update_scene import update_scene
+from simulation.update_scene import UpdateScene
 from cable.pull_ratio import TimeInvariablePullRatio
+
 
 class TestSimulation(unittest.TestCase):
     """Only checks memory and gradients but final mesh needs to be viewed manually
@@ -40,9 +41,21 @@ class TestSimulation(unittest.TestCase):
             duration=0.02, segment_duration=0.01, dt=2.1701388888888886e-05, device=device
         )
         pull_ratio = [
-            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.5, device=device, requires_grad=True), simulation_properties=sim_properties, device=device),
-            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device=device, requires_grad=True), simulation_properties=sim_properties, device=device),
-            TimeInvariablePullRatio(pull_ratio=torch.tensor(0.0, device=device, requires_grad=True), simulation_properties=sim_properties, device=device),
+            TimeInvariablePullRatio(
+                pull_ratio=torch.tensor(0.5, device=device, requires_grad=True),
+                simulation_properties=sim_properties,
+                device=device,
+            ),
+            TimeInvariablePullRatio(
+                pull_ratio=torch.tensor(0.0, device=device, requires_grad=True),
+                simulation_properties=sim_properties,
+                device=device,
+            ),
+            TimeInvariablePullRatio(
+                pull_ratio=torch.tensor(0.0, device=device, requires_grad=True),
+                simulation_properties=sim_properties,
+                device=device,
+            ),
         ]
         cable_stiffness, cable_damping = 100, 0.01
         # object
@@ -66,12 +79,11 @@ class TestSimulation(unittest.TestCase):
             object_transform=object_transform,
             contact_properties=contact_properties,
             device=device,
-            make_new_robot=False
+            make_new_robot=False,
         ).create()
 
-
-        cls.simulation = Simulation(scene=cls.scene, properties=sim_properties)
-        update_scene(scene=cls.scene, simulation=cls.simulation, viewer=None)
+        cls.simulation = Simulation(scene=cls.scene, properties=sim_properties, use_checkpoint=True)
+        UpdateScene(scene=cls.scene, simulation=cls.simulation).update_scene()
 
     def tests_if_simulation_releases_memory_after_each_segment(self):
         memory = self.simulation.free_memory

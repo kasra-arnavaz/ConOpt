@@ -14,6 +14,7 @@ from scene.scene_factory import GripperSceneFactory
 from warp_wrapper.contact_properties import ContactProperties
 from simulation.update_scene import UpdateScene
 from rendering.z_buffer import ZBuffer
+from scene.scene_observer import SceneImages
 from cable.pull_ratio import TimeInvariablePullRatio
 
 
@@ -23,7 +24,7 @@ class TestRenderingVisualization(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.device = "cuda"
+        device = "cuda"
         # robot
         msh_file = Path("data/long_caterpillar.msh")
         scad_file = Path("data/caterpillar.scad")
@@ -35,36 +36,42 @@ class TestRenderingVisualization(unittest.TestCase):
             youngs_modulus=149_000,
             poissons_ratio=0.45,
             damping_factor=0.4,
-            frozen_bounding_box=[-float("inf"), -0.01, -float("inf"), float("inf"), -float("inf"), float("inf")],
+            frozen_bounding_box=[-float("inf"), -0.01, -float("inf"), float("inf"), float("inf"), float("inf")],
         )
         robot_transform = Transform(
             rotation=get_quaternion(vector=[1, 0, 0], angle_in_degrees=90),
             scale=[0.001, 0.001, 0.001],
-            device=cls.device,
+            device=device,
         )
         sim_properties = SimulationProperties(
-            duration=0.02, segment_duration=0.01, dt=2.1701388888888886e-05, device=cls.device
+            duration=2.0, segment_duration=0.1, dt=2.1701388888888886e-05, device=device
         )
         pull_ratio = [
             TimeInvariablePullRatio(
-                pull_ratio=torch.tensor(0.5, device=cls.device), simulation_properties=sim_properties, device=cls.device
+                pull_ratio=torch.tensor(0.5, device=device), simulation_properties=sim_properties, device=device
             ),
             TimeInvariablePullRatio(
-                pull_ratio=torch.tensor(0.0, device=cls.device), simulation_properties=sim_properties, device=cls.device
+                pull_ratio=torch.tensor(0.0, device=device), simulation_properties=sim_properties, device=device
             ),
             TimeInvariablePullRatio(
-                pull_ratio=torch.tensor(0.0, device=cls.device), simulation_properties=sim_properties, device=cls.device
+                pull_ratio=torch.tensor(0.0, device=device), simulation_properties=sim_properties, device=device
+            ),
+            TimeInvariablePullRatio(
+                pull_ratio=torch.tensor(0.5, device=device), simulation_properties=sim_properties, device=device
+            ),
+            TimeInvariablePullRatio(
+                pull_ratio=torch.tensor(0.0, device=device), simulation_properties=sim_properties, device=device
             ),
         ]
         cable_stiffness, cable_damping = 100, 0.01
         # object
         object_file = Path("tests/data/cylinder.obj")
         object_properties = MeshProperties(name="cylinder", density=1080.0)
-        object_transform = Transform(translation=[60, -60, -20], scale=[0.0015, 0.0015, 0.01], device=cls.device)
+        object_transform = Transform(translation=[60, -60, -20], scale=[0.0015, 0.0015, 0.01], device=device)
 
         contact_properties = ContactProperties(distance=0.001, ke=2.0, kd=0.1, kf=0.1, ground=False)
 
-        cls.scene = GripperSceneFactory(
+        scene = GripperSceneFactory(
             msh_file=msh_file,
             scad_file=scad_file,
             scad_parameters=scad_parameters,
@@ -78,41 +85,42 @@ class TestRenderingVisualization(unittest.TestCase):
             object_properties=object_properties,
             object_transform=object_transform,
             contact_properties=contact_properties,
-            device=cls.device,
+            device=device,
             make_new_robot=False,
         ).create()
 
-        simulation = Simulation(scene=cls.scene, properties=sim_properties)
-        UpdateScene(scene=cls.scene, simulation=simulation).update_scene()
+        simulation = Simulation(scene=scene, properties=sim_properties)
+        # exterior
+        views = SixExteriorViews(distance=0.5, device=device)
+        zbufs = [ZBuffer(mesh=mesh, views=views, device=device) for mesh in scene.all_meshes()]
+        rendering = ExteriorDepthRendering(zbufs)
+        exterior_images = SceneImages(rendering=rendering, path=".tmp", prefix="exterior")
+        # gap
+        views = SixInteriorViews(center=scene.object.nodes.position.mean(dim=0), device=device)
+        robot_zbuf = ZBuffer(mesh=scene.robot, views=views, device=device)
+        other_zbuf = ZBuffer(mesh=scene.object, views=views, device=device)
+        rendering = InteriorGapRendering(robot_zbuf=robot_zbuf, other_zbuf=other_zbuf)
+        gap_images = SceneImages(rendering=rendering, path=".tmp", prefix="gap")
+        # contact
+        views = SixInteriorViews(center=scene.object.nodes.position.mean(dim=0), device=device)
+        robot_zbuf = ZBuffer(mesh=scene.robot, views=views, device=device)
+        other_zbuf = ZBuffer(mesh=scene.object, views=views, device=device)
+        rendering = InteriorContactRendering(robot_zbuf=robot_zbuf, other_zbuf=other_zbuf)
+        contact_images = SceneImages(rendering=rendering, path=".tmp", prefix="contact")
+        # add observers
+        scene.add_observer(exterior_images)
+        scene.add_observer(gap_images)
+        scene.add_observer(contact_images)
+        UpdateScene(scene=scene, simulation=simulation).update_scene()
 
     def tests_if_exterior_depth_rendering_of_robot_runs_given_six_views(self):
-        views = SixExteriorViews(distance=0.5, device=self.device)
-        zbufs = [ZBuffer(mesh=mesh, views=views, device=self.device) for mesh in self.scene.all_meshes()]
-        rendering = ExteriorDepthRendering(zbufs)
-        try:
-            rendering.get_images()
-        except:
-            self.fail()
+        print("CHECK .tmp/exterior_i.png")
 
     def tests_if_interior_gap_rendering_runs_given_six_views(self):
-        views = SixInteriorViews(center=self.scene.object.nodes.position.mean(dim=0), device=self.device)
-        robot_zbuf = ZBuffer(mesh=self.scene.robot, views=views, device=self.device)
-        other_zbuf = ZBuffer(mesh=self.scene.object, views=views, device=self.device)
-        rendering = InteriorGapRendering(robot_zbuf=robot_zbuf, other_zbuf=other_zbuf)
-        try:
-            rendering.get_images()
-        except:
-            self.fail()
+        print("CHECK .tmp/gap_i.png")
 
     def tests_if_interior_contact_rendering_runs_given_six_views(self):
-        views = SixInteriorViews(center=self.scene.object.nodes.position.mean(dim=0), device=self.device)
-        robot_zbuf = ZBuffer(mesh=self.scene.robot, views=views, device=self.device)
-        other_zbuf = ZBuffer(mesh=self.scene.object, views=views, device=self.device)
-        rendering = InteriorContactRendering(robot_zbuf=robot_zbuf, other_zbuf=other_zbuf)
-        try:
-            rendering.get_images()
-        except:
-            self.fail()
+        print("CHECK .tmp/contact_i.png")
 
 
 if __name__ == "__main__":

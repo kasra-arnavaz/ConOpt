@@ -50,6 +50,6 @@ class Simulation(torch.nn.Module):
         holes_force = self._holes_force(holes_position, holes_velocity)
         nodes_force = self._nodes_force(holes_force)
         return self._nodes_position_and_velocity(nodes_force, nodes_position, nodes_velocity)
-    
+
     def _append_free_memory(self):
         self.free_memory.append(torch.cuda.mem_get_info()[0] / (1024 * 1024 * 1024))

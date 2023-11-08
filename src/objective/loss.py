@@ -4,10 +4,10 @@ import sys
 
 sys.path.append("src")
 
-from rendering.rendering import InteriorGapRendering, InteriorContactRendering, InteriorDistanceRendering
+from rendering.rendering import InteriorGapRendering, InteriorDistanceRendering
 from scene.scene import Scene, TouchScene
 from typing import List
-from objective.variables import Variables
+from scene.scene_observer import SceneObserver
 
 
 class Loss(ABC):
@@ -48,61 +48,43 @@ class PointTouchLoss(Loss):
         output_position = self._scene.robot.nodes.position[self._scene.robot_end_effector_idx]
         target_position = self._scene.object.nodes.position.mean(dim=0)
         return torch.sum((output_position - target_position) ** 2)
-    
-class ObstacleAvoidanceLoss(Loss):
+
+
+class ObstacleAvoidanceLoss(Loss, SceneObserver):
     def __init__(self, rendering: InteriorDistanceRendering, device: str = "cuda"):
         self._rendering = rendering
         self._device = device
         self.loss = torch.zeros(1, requires_grad=True, device=self._device)
 
-    @property
-    def rendering(self):
-        return self._rendering
-       
+    def update(self):
+        self.loss = self.loss + self.get_loss()
+
     def get_loss(self):
         loss = torch.zeros(1, requires_grad=True, device=self._device)
         images = self._rendering.get_images()
         for image in images:
             loss = loss + torch.mean(image)
-        return loss/len(images)
-    
-    def stack_loss(self):
-        self.loss = self.loss + self.get_loss() # try in place
+        return loss / len(images)
 
-    
+
 class PointTouchWithObstacleAvoidanceLoss(Loss):
-    def __init__(self, scene: TouchScene, obstacle_avoidance_losses: List[ObstacleAvoidanceLoss]):
+    def __init__(self, scene: TouchScene, obstacle_avoidance_losses: List[ObstacleAvoidanceLoss], weight: float = 0.5):
         self._point_touch_loss = PointTouchLoss(scene)
-        self.obstacle_avoidance_losses = obstacle_avoidance_losses
+        self._obstacle_avoidance_losses = obstacle_avoidance_losses
+        self._weight = weight
 
     def get_loss(self):
-        loss = self._point_touch_loss.get_loss()
-        print(f"tracking loss: {loss}")
-        for i, obstacle_avoidance_loss in enumerate(self.obstacle_avoidance_losses):
-            loss = loss - obstacle_avoidance_loss.loss
-            print(f"obstacle {i} loss: {obstacle_avoidance_loss.loss}")
+        loss = self._point_touch_loss.get_loss() * self._weight
+        for obstacle_avoidance_loss in self._obstacle_avoidance_losses:
+            loss = loss - (1 - self._weight) * obstacle_avoidance_loss.loss
         return loss
-    
+
+
 class LocomotionLoss(Loss):
-    def __init__(self, scene: Scene, target_position: torch.Tensor, variables: Variables):
+    def __init__(self, scene: Scene, target_position: torch.Tensor):
         self._scene = scene
         self._target_position = target_position
-        self._variables = variables
 
     def get_loss(self):
-        tracking_loss = self.get_tracking_loss()
-        l1_loss = self.get_l1_loss()
-        print(f"track loss: {tracking_loss}")
-        print(f"L1 loss: {l1_loss}")
-        return 10*tracking_loss + 0.01*l1_loss
-
-    def get_tracking_loss(self):
         output_position = self._scene.robot.nodes.position.mean(dim=0)
         return torch.sum((output_position - self._target_position) ** 2)
-
-    def get_l1_loss(self):
-        parameters = self._variables.parameters
-        loss = torch.zeros(1, requires_grad=True, device=parameters[0].device)
-        for p in parameters:
-            loss = loss + torch.abs(p)
-        return loss/len(parameters)

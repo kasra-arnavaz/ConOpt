@@ -1,4 +1,3 @@
-import torch
 import sys
 
 sys.path.append("src")
@@ -7,16 +6,10 @@ from scene.scene_factory import TouchSceneFactory
 from mesh.mesh_properties import MeshProperties
 from simulation.simulation import Simulation
 from point.transform import Transform, get_quaternion
-from rendering.views import ThreeInteriorViews, ThreeExteriorViews, SixInteriorViews
-from rendering.visual import Visual
-from rendering.rendering import (
-    ExteriorDepthRendering,
-    InteriorGapRendering,
-    InteriorContactRendering,
-    InteriorDistanceRendering
-)
-from objective.loss import PointTouchLoss, ObstacleAvoidanceLoss, PointTouchWithObstacleAvoidanceLoss
-from objective.optimizer import GradientDescent, Adam
+from rendering.views import SixInteriorViews
+from rendering.rendering import InteriorGapRendering, InteriorDistanceRendering
+from objective.loss import ObstacleAvoidanceLoss, PointTouchWithObstacleAvoidanceLoss
+from objective.optimizer import GradientDescent
 from objective.train import Train
 from objective.variables import Variables
 from simulation.simulation_properties import SimulationProperties
@@ -26,8 +19,8 @@ from config.config import Config
 import argparse
 from utils.path import get_next_numbered_path
 from rendering.z_buffer import ZBuffer
-from cable.pull_ratio import TimeInvariablePullRatio, TimeVariablePullRatio
-
+from cable.pull_ratio import TimeInvariablePullRatio
+from simulation.update_scene import UpdateScene
 
 
 def main(args):
@@ -51,24 +44,21 @@ def main(args):
     )
     robot_transform = Transform(
         translation=config.robot_translation,
-        rotation=get_quaternion(
-            vector=config.robot_rotation_vector, angle_in_degrees=config.robot_rotation_degrees
-        ),
+        rotation=get_quaternion(vector=config.robot_rotation_vector, angle_in_degrees=config.robot_rotation_degrees),
         scale=config.robot_scale,
-        device=
-        DEVICE,
+        device=DEVICE,
     )
     sim_properties = SimulationProperties(
-        duration=config.sim_duration, segment_duration=config.sim_segment_duration, dt=config.sim_dt, key_timepoints_interval=config.key_timepoints_interval, device=DEVICE
+        duration=config.sim_duration,
+        segment_duration=config.sim_segment_duration,
+        dt=config.sim_dt,
+        key_timepoints_interval=config.key_timepoints_interval,
+        device=DEVICE,
     )
 
-    # pull_ratio = []
-    # for pull in config.cable_pull_ratio:
-    #     sub_list = [torch.tensor(p, device=DEVICE, requires_grad=True) for p in pull]
-    #     pull_ratio.append(sub_list)
-    # cable_pull_ratio = [TimeVariablePullRatio(pull_ratio=pull, simulation_properties=sim_properties, device=DEVICE) for pull in pull_ratio]
-
-    cable_pull_ratio = [TimeVariablePullRatio(simulation_properties=sim_properties, device=DEVICE) for _ in config.cable_pull_ratio]
+    cable_pull_ratio = [
+        TimeInvariablePullRatio(simulation_properties=sim_properties, device=DEVICE) for _ in config.cable_pull_ratio
+    ]
     cable_stiffness, cable_damping = config.cable_stiffness, config.cable_damping
 
     # object
@@ -82,20 +72,37 @@ def main(args):
     )
 
     contact_properties = ContactProperties(
-        distance=config.contact_distance, ke=config.contact_ke, kd=config.contact_kd, kf=config.contact_kf, ground=config.ground
+        distance=config.contact_distance,
+        ke=config.contact_ke,
+        kd=config.contact_kd,
+        kf=config.contact_kf,
+        ground=config.ground,
     )
     # obstacle
     try:
         obstacle_files = [Path(file) for file in config.obstacle_file]
-        obstacle_properties = [MeshProperties(name=f"obstacle_{i}", density=density) for i, density in enumerate(config.obstacle_density)]
+        obstacle_properties = [
+            MeshProperties(name=f"obstacle_{i}", density=density) for i, density in enumerate(config.obstacle_density)
+        ]
         obstacle_transforms = []
-        for t, rv, rd, s in zip(config.obstacle_translation, config.obstacle_rotation_vector, config.obstacle_rotation_degrees, config.obstacle_scale):
-            obstacle_transforms.append(Transform(translation=t, rotation=get_quaternion(vector=rv, angle_in_degrees=rd), scale=s))
+        for t, rv, rd, s in zip(
+            config.obstacle_translation,
+            config.obstacle_rotation_vector,
+            config.obstacle_rotation_degrees,
+            config.obstacle_scale,
+        ):
+            obstacle_transforms.append(
+                Transform(translation=t, rotation=get_quaternion(vector=rv, angle_in_degrees=rd), scale=s)
+            )
     except:
         obstacle_files, obstacle_properties, obstacle_transforms = None, None, None
 
     contact_properties = ContactProperties(
-        distance=config.contact_distance, ke=config.contact_ke, kd=config.contact_kd, kf=config.contact_kf, ground=config.ground
+        distance=config.contact_distance,
+        ke=config.contact_ke,
+        kd=config.contact_kd,
+        kf=config.contact_kf,
+        ground=config.ground,
     )
 
     scene = TouchSceneFactory(
@@ -116,14 +123,14 @@ def main(args):
         obstacle_transforms=obstacle_transforms,
         contact_properties=contact_properties,
         device=DEVICE,
-        make_new_robot=False
+        make_new_robot=False,
     ).create()
 
     variables = Variables()
     for cable in scene.robot.cables:
         for opt in cable.pull_ratio.optimizable:
             variables.add_parameter(opt)
-   
+
     simulation = Simulation(scene=scene, properties=sim_properties, use_checkpoint=config.use_checkpoint)
     # point touch with obstacle avoidance loss
     views_obstacle_0 = SixInteriorViews(center=scene.obstacles[0].nodes.position.mean(dim=0), device=DEVICE)
@@ -134,30 +141,17 @@ def main(args):
     obstacle_zbuf_0 = ZBuffer(mesh=scene.obstacles[0], views=views_obstacle_0, device=DEVICE)
     obstacle_zbuf_1 = ZBuffer(mesh=scene.obstacles[1], views=views_obstacle_1, device=DEVICE)
     obstacle_zbufs = [obstacle_zbuf_0, obstacle_zbuf_1]
-    renderings = [InteriorGapRendering(robot_zbuf=rz, other_zbuf=oz) for rz, oz in zip(robot_zbufs, obstacle_zbufs)]
+    renderings = [
+        InteriorGapRendering(robot_zbuf=rz, other_zbuf=oz) for rz, oz in zip(robot_zbufs, obstacle_zbufs)
+    ]  # Consider using InteriorDistanceRendering
     obs_loss = [ObstacleAvoidanceLoss(rendering=r, device=DEVICE) for r in renderings]
+    for ol in obs_loss:
+        scene.add_observer(ol)
     loss = PointTouchWithObstacleAvoidanceLoss(scene=scene, obstacle_avoidance_losses=obs_loss)
-
     optimizer = GradientDescent(loss, variables, learning_rate=config.learning_rate)
-    exterior_view = ThreeExteriorViews(distance=0.5, device=DEVICE)
-    robot_zbuf_ext = ZBuffer(mesh=scene.robot, views=exterior_view, device=DEVICE)
-    object_zbuf_ext = ZBuffer(mesh=scene.object, views=exterior_view, device=DEVICE)
-    obstacle_zbuf_ext = [ZBuffer(mesh=obstacle, views=exterior_view, device=DEVICE) for obstacle in scene.obstacles]
-    all_zbufs = [robot_zbuf_ext, object_zbuf_ext]
-    all_zbufs.extend(obstacle_zbuf_ext)
-    visual_ext = Visual(
-        ExteriorDepthRendering(zbufs=all_zbufs), path=PATH, prefix="ext"
-    )
     log = Log(loss=loss, variables=variables, path=PATH)
-    Train(
-        simulation,
-        scene,
-        loss,
-        optimizer,
-        num_iters=config.num_training_iterations,
-        log=log,
-        visuals=[visual_ext],
-    ).run(verbose=True)
+    update_scene = UpdateScene(scene=scene, simulation=simulation)
+    Train(scene, update_scene, loss, optimizer, num_iters=config.num_training_iterations, log=log).run(verbose=True)
 
 
 if __name__ == "__main__":

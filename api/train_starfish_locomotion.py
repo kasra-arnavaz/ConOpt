@@ -8,17 +8,18 @@ from mesh.mesh_properties import MeshProperties
 from simulation.simulation import Simulation
 from point.transform import Transform, get_quaternion
 from simulation.simulation_properties import SimulationProperties
-from scene.scene_viewer import SceneViewer
 from config.config import Config
 import argparse
 from utils.path import get_next_numbered_path
 from warp_wrapper.contact_properties import ContactProperties
-from cable.pull_ratio import TimeInvariablePullRatio, TimeVariablePullRatio
+from cable.pull_ratio import TimeVariablePullRatio
 from objective.variables import Variables
 from objective.log import Log
 from objective.optimizer import GradientDescent
 from objective.train import Train
 from objective.loss import LocomotionLoss
+from simulation.update_scene import UpdateScene
+
 
 def main(args):
     config = Config.from_yaml(args.config)
@@ -41,23 +42,31 @@ def main(args):
     )
     robot_transform = Transform(
         translation=config.robot_translation,
-        rotation=get_quaternion(
-            vector=config.robot_rotation_vector, angle_in_degrees=config.robot_rotation_degrees
-        ),
+        rotation=get_quaternion(vector=config.robot_rotation_vector, angle_in_degrees=config.robot_rotation_degrees),
         scale=config.robot_scale,
         device=DEVICE,
     )
     sim_properties = SimulationProperties(
-        duration=config.sim_duration, segment_duration=config.sim_segment_duration, dt=config.sim_dt, key_timepoints_interval=config.key_timepoints_interval, device=DEVICE
+        duration=config.sim_duration,
+        segment_duration=config.sim_segment_duration,
+        dt=config.sim_dt,
+        key_timepoints_interval=config.key_timepoints_interval,
+        device=DEVICE,
     )
-    cable_pull_ratio = [TimeVariablePullRatio(simulation_properties=sim_properties, device=DEVICE),
-                        TimeVariablePullRatio(simulation_properties=sim_properties, device=DEVICE),
-                        TimeVariablePullRatio(simulation_properties=sim_properties, device=DEVICE),
-                        TimeVariablePullRatio(simulation_properties=sim_properties, device=DEVICE),
-                        TimeVariablePullRatio(simulation_properties=sim_properties, device=DEVICE)]
+    cable_pull_ratio = [
+        TimeVariablePullRatio(simulation_properties=sim_properties, device=DEVICE),
+        TimeVariablePullRatio(simulation_properties=sim_properties, device=DEVICE),
+        TimeVariablePullRatio(simulation_properties=sim_properties, device=DEVICE),
+        TimeVariablePullRatio(simulation_properties=sim_properties, device=DEVICE),
+        TimeVariablePullRatio(simulation_properties=sim_properties, device=DEVICE),
+    ]
     cable_stiffness, cable_damping = config.cable_stiffness, config.cable_damping
     contact_properties = ContactProperties(
-        distance=config.contact_distance, ke=config.contact_ke, kd=config.contact_kd, kf=config.contact_kf, ground=config.ground
+        distance=config.contact_distance,
+        ke=config.contact_ke,
+        kd=config.contact_kd,
+        kf=config.contact_kf,
+        ground=config.ground,
     )
     scene = StarfishSceneFactory(
         msh_file=msh_file,
@@ -71,19 +80,22 @@ def main(args):
         cable_damping=cable_damping,
         contact_properties=contact_properties,
         device=DEVICE,
-        make_new_robot=False
+        make_new_robot=False,
     ).create()
     variables = Variables()
     for cable in scene.robot.cables:
         for opt in cable.pull_ratio.optimizable:
             variables.add_parameter(opt)
     simulation = Simulation(scene=scene, properties=sim_properties, use_checkpoint=config.use_checkpoint)
-    loss = LocomotionLoss(scene=scene, target_position=torch.tensor(config.target_position, device=config.device), variables=variables)
+    loss = LocomotionLoss(
+        scene=scene, target_position=torch.tensor(config.target_position, device=config.device), variables=variables
+    )
     optimizer = GradientDescent(loss, variables, learning_rate=config.learning_rate)
     log = Log(loss=loss, variables=variables, path=PATH)
+    update_scene = UpdateScene(scene=scene, simulation=simulation)
     Train(
-        simulation,
         scene,
+        update_scene,
         loss,
         optimizer,
         num_iters=config.num_training_iterations,
