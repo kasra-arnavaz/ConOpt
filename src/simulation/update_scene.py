@@ -4,25 +4,33 @@ sys.path.append("src")
 
 from simulation.simulation import Simulation
 from scene.scene import Scene
-from scene.scene_viewer import SceneViewer
 import tqdm
-from objective.loss import ObstacleAvoidanceLoss
-from typing import List
-
-def update_scene_one_segment(scene: Scene, simulation: Simulation) -> None:
-    scene.robot.nodes.position, scene.robot.nodes.velocity = simulation(
-        scene.robot.nodes.position, scene.robot.nodes.velocity
-    )
 
 
-def update_scene(scene: Scene, simulation: Simulation, viewer: SceneViewer = None, obstacle_loss: List[ObstacleAvoidanceLoss] = None) -> None:
-    for i in tqdm.tqdm(range(simulation.properties.num_segments), "Simulation", colour="green", leave=False):
-        viewer.save(time=i * simulation.properties.segment_duration) if viewer is not None else None
-        update_scene_one_segment(scene=scene, simulation=simulation)
-        if i == simulation.properties.num_segments-1:
-            viewer.save(time=i * simulation.properties.segment_duration) if viewer is not None else None
-        if obstacle_loss is not None: # should go to the end
-            for o_loss in obstacle_loss:
-                o_loss.stack_loss()
+class UpdateScene:
+    def __init__(self, scene: Scene, simulation: Simulation):
+        self._scene = scene
+        self._simulation = simulation
 
+    def update_scene(self):
+        for self.i in tqdm.tqdm(
+            range(self._simulation.properties.num_segments),
+            "Simulation",
+            colour="green",
+            leave=False,
+        ):
+            self._notify_observers()
+            self._update_one_segment()
+            self._notify_observers() if self._is_last_segment() else None
 
+    def _update_one_segment(self) -> None:
+        self._scene.robot.nodes.position, self._scene.robot.nodes.velocity = self._simulation(
+            self._scene.robot.nodes.position, self._scene.robot.nodes.velocity
+        )
+
+    def _notify_observers(self) -> None:
+        for obs in self._scene.observers:
+            obs.update()
+
+    def _is_last_segment(self) -> bool:
+        return self.i == self._simulation.properties.num_segments - 1

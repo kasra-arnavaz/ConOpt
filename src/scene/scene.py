@@ -19,11 +19,15 @@ class Scene:
     robot: Mesh = field()
     device: str = field(default="cuda")
     contact_properties: ContactProperties = field(default=None)
+    observers: List["SceneObserver"] = field(factory=list)
     model: Model = field(init=False)
+
+    def add_observer(self, observer: "SceneObserver"):
+        self.observers.append(observer)
 
     @model.default
     def _create_model(self):
-         return ModelFactory(
+        return ModelFactory(
             soft_mesh=self.robot,
             shape_meshes=None,
             contact_properties=self.contact_properties,
@@ -45,15 +49,16 @@ class Scene:
         for cable in self.robot.cables:
             cable.pull_ratio.update_pull_ratio()
             cable.pull_ratio.update_iterator()
-            
+
+
 @define
 class GripperScene(Scene):
     robot: Mesh = field()
     object: Mesh = field()
     contact_properties: ContactProperties = field()
+    observers: List["SceneObserver"] = field(factory=list)
     device: str = field(default="cuda")
     model: Model = field(init=False)
-
 
     @model.default
     def _create_model(self):
@@ -63,7 +68,7 @@ class GripperScene(Scene):
             contact_properties=self.contact_properties,
             device=self.device,
         ).create()
-    
+
     def all_meshes(self) -> List[Mesh]:
         return [self.robot, self.object]
 
@@ -74,6 +79,7 @@ class TouchScene(Scene):
     object: Mesh = field()
     obstacles: List[Mesh] = field(default=None)
     contact_properties: ContactProperties = field(default=None)
+    observers: List["SceneObserver"] = field(factory=list)
     device: str = field(default="cuda")
     model: Model = field(init=False)
     robot_end_effector_idx: int = field(init=False)
@@ -89,12 +95,12 @@ class TouchScene(Scene):
             contact_properties=self.contact_properties,
             device=self.device,
         ).create()
-    
+
     def _shape_meshes(self):
         shape_meshes = self.obstacles.copy() if self.obstacles is not None else []
         shape_meshes.append(self.object)
         return shape_meshes
-    
+
     @robot_end_effector_idx.default
     def _robot_end_effector_idx(self):
         return self.robot.nodes.position[:, 1].argmin()  # assumes robot is facing down

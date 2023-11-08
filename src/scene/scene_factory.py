@@ -52,9 +52,8 @@ class SceneFactory(ABC):
 
     def _cables(self):
         return CableListFactory(self._holes(), self.cable_pull_ratio, self.cable_stiffness, self.cable_damping).create()
-    
+
     def _holes(self):
-        
         if "caterpillar" in str(self.scad_file):
             holes_initial_position = CaterpillarHolesInitialPosition
         elif "starfish" in str(self.scad_file):
@@ -64,13 +63,15 @@ class SceneFactory(ABC):
         for hole in holes:
             self.robot_transform.apply(hole)
         return holes
-    
+
     @staticmethod
     def _create_obj_mesh(file: PathLike, properties: MeshProperties, transform: Transform, device: str) -> Mesh:
         mesh = MeshFactoryFromObj(file, device=device).create()
         mesh.properties = properties
         transform.apply(mesh.nodes)
         return mesh
+
+
 @define
 class GripperSceneFactory(SceneFactory):
     scad_file: PathLike
@@ -99,9 +100,8 @@ class GripperSceneFactory(SceneFactory):
 
     def _object(self):
         return self._create_obj_mesh(self.object_file, self.object_properties, self.object_transform, self.device)
-    
 
-    
+
 @define
 class TouchSceneFactory(GripperSceneFactory):
     scad_file: PathLike
@@ -130,7 +130,7 @@ class TouchSceneFactory(GripperSceneFactory):
             contact_properties=self.contact_properties,
             device=self.device,
         )
-    
+
     def _obstacles(self) -> List[Mesh]:
         if self.obstacle_files is None:
             return None
@@ -138,6 +138,7 @@ class TouchSceneFactory(GripperSceneFactory):
         for file, properties, transform in zip(self.obstacle_files, self.obstacle_properties, self.obstacle_transforms):
             obstacles.append(self._create_obj_mesh(file, properties, transform, self.device))
         return obstacles
+
 
 @define
 class StarfishSceneFactory(SceneFactory):
