@@ -6,6 +6,7 @@ sys.path.append("src")
 import matplotlib.pyplot as plt
 from rendering.rendering import DepthRendering
 import os
+import torch
 
 from pxr import Usd
 import warp as wp
@@ -27,11 +28,18 @@ class SceneImages(SceneObserver):
         self._path = path
         self._prefix = prefix
         self._name = 0
+        self._mean_images = []
 
     def update(self) -> None:
         self._images = self._rendering.get_images()
+        self._mean_images.append(torch.stack(self._images).mean().item())
         self._save_images(name=f"{self._name}")
         self._name += 1
+
+    def save_mean_plot(self) -> None:
+        plt.figure()
+        plt.plot(self._mean_images)
+        plt.savefig(f"{self._path}/{self._prefix}_mean.png")
 
     def _save_images(self, name: str):
         os.makedirs(self._path, exist_ok=True)

@@ -115,6 +115,7 @@ def main(args):
     )
     scene.add_observer(contact_images)
     UpdateScene(scene=scene, simulation=simulation).update_scene()
+    contact_images.save_mean_plot()
 
 
 if __name__ == "__main__":
